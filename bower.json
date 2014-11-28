@@ -1,0 +1,52 @@
+{
+  "name": "jquery.isinview",
+  "version": "0.1.0",
+  "homepage": "https://github.com/hashchange/jquery.isinview",
+  "authors": [
+    "Michael Heim <heim@zeilenwechsel.de>"
+  ],
+  "description": "A jQuery plugin, detecting if a elements are visible in a scrollable container. Works in the context of the viewport, iframes, or nested scrolling elements. Provides filter methods and a selector. Comes with an extensive test suite, and aims to be fast.",
+  "main": "dist/jquery.isinview.js",
+  "keywords": [
+    "jquery",
+    "view",
+    "viewport",
+    "window",
+    "visible",
+    "visibility",
+    "display",
+    "show",
+    "overflow",
+    "scroll",
+    "scrollbar",
+    "container",
+    "dom",
+    "element",
+    "hidden",
+    "hide",
+    "nested",
+    "recursive"
+  ],
+  "license": "MIT",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests",
+    "public",
+    "reports",
+    "demo",
+    "lib-other",
+    "web-mocha",
+    "spec",
+    "src",
+    "Gruntfile.js",
+    "karma.conf.js",
+    "package.json"
+  ],
+  "devDependencies": {},
+  "dependencies": {
+    "jquery": ">=1.9.0 <2.2"
+  }
+}
