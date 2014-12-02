@@ -23,6 +23,42 @@
     };
 
     /**
+     * Returns the size (width) of the scrollbar, in pixels, as a number without unit.
+     *
+     * If the browser doesn't provide permanent scrollbars, and instead shows them as a temporary overlay while actually
+     * scrolling the page, scrollbar size is reported as 0. That is the default behaviour in mobile browsers, and in
+     * current versions of OS X.
+     *
+     * Adapted from Ben Alman's scrollbarWidth plugin. See
+     * - http://benalman.com/projects/jquery-misc-plugins/#scrollbarwidth
+     * - http://jsbin.com/zeliy/1
+     *
+     * @returns {number}
+     */
+    $.scrollbarWidth = function () {
+        var $parent, $child;
+
+        if ( _scrollbarWidth === undefined ) {
+
+            $child = $( "<div/>" ).css( { margin: 0, padding: 0, borderStyle: "none" } );
+            $parent = $( "<div/>" )
+                .css( {
+                    width: "100px", height: "100px", overflow: "auto",
+                    position: "absolute", top: "-500px", left: "-500px",
+                    margin: 0, padding: 0, borderStyle: "none"
+                } )
+                .append( $child )
+                .appendTo( "body" );
+
+            _scrollbarWidth = $child.innerWidth() - $child.height( 150 ).innerWidth();
+            $parent.remove();
+
+        }
+
+        return _scrollbarWidth;
+    };
+
+    /**
      * Gets the TextRectangle coordinates relative to a container element.
      *
      * Do not call if the container is a window (redundant) or a document. Both calls would fail.
@@ -45,23 +81,6 @@
             left: rect.left - containerRect.left + parseFloat( containerBorders.borderLeftWidth ),
             right: rect.right - containerRect.left - parseFloat( containerBorders.borderRightWidth )
         };
-    }
-
-    // Adapted from Ben Alman's scrollbarWidth plugin. See http://benalman.com/projects/jquery-misc-plugins/#scrollbarwidth,
-    // and also http://jsbin.com/zeliy/1
-    // todo use it!
-    function getScrollbarWidth () {
-        var parent,
-            child;
-
-        if ( _scrollbarWidth === undefined ) {
-            parent = $('<div style="width: 50px; height: 50px; overflow: auto; position: absolute; top: -500px; left: -500px;"><div/></div>').appendTo('body');
-            child = parent.children();
-            _scrollbarWidth = child.innerWidth() - child.height( 99 ).innerWidth();
-            parent.remove();
-        }
-
-        return _scrollbarWidth;
     }
 
     var _scrollbarWidth,
