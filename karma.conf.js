@@ -32,6 +32,9 @@ module.exports = function(config) {
       // Component under test
       'src/jquery.isinview.js',
 
+      // Test helpers
+      'spec/helpers/**/*.js',
+
       // Tests
       'spec/**/*.+(spec|test|tests).js'
     ],
