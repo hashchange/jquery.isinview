@@ -23,3 +23,17 @@ function createChildWindow () {
     return childWindow;
 }
 
+function getTimestamp () {
+    return Date.now && Date.now() || +new Date();
+}
+
+function log ( message ) {
+    "use strict";
+    if ( typeof console !== "undefined" && console.log ) console.log( message );
+}
+
+function warn ( message ) {
+    "use strict";
+    if ( typeof console !== "undefined" ) console.warn && console.warn( message ) || console.log && console.log( message );
+}
+
