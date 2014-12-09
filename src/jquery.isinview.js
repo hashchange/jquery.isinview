@@ -68,14 +68,24 @@
      *
      * For performance reasons, this check should *not* be run on every element in a set.
      *
-     * @param {jQuery} $elem
-     * @param {jQuery} $container
+     * @param {HTMLElement}                 elem
+     * @param {Window|Document|HTMLElement} container
      */
-    function checkHierarchy ( $elem, $container ) {
+    function checkHierarchy ( elem, container ) {
 
-        if ( ! $.isWindow( $container[0] ) ) {
-            if ( ! $elem.parents().has( $container ) ) throw new Error( "Invalid container: is a descendant of the element" );
+        var elemIsContained;
+
+        // We need a DOM element for this check, so we use the documentElement as a proxy if the container is a window
+        // or document.
+        if ( $.isWindow( container ) ) {
+            elemIsContained = $.contains( container.document.documentElement, elem );
+        } else if ( container.nodeType === 9 ) {
+            elemIsContained = $.contains( container.documentElement, elem );
+        } else {
+            elemIsContained = $.contains( container, elem );
         }
+
+        if ( !elemIsContained ) throw new Error( "Invalid container: is a descendant of the element" );
 
     }
 
@@ -278,7 +288,7 @@
 
         // Check if the elements are children of the container. For performance reasons, only the first element is
         // examined.
-        if ( ! config.containerIsWindow ) checkHierarchy( $elems[0], config.$container );
+        if ( ! config.containerIsWindow ) checkHierarchy( $elems[0], config.container );
 
         $elems.each( function () {
             if ( _isInView( this, config ) ) inView.push( this );
@@ -327,7 +337,7 @@
         if ( !$elem.length ) return false;
 
         config = _prepareConfig( $elem, container, opts );
-        if ( ! config.containerIsWindow ) checkHierarchy( $elem, config.$container ); // todo when dealing with sets in inView, do this only for the first element (perf!)
+        if ( ! config.containerIsWindow ) checkHierarchy( elem, config.container );
 
         return _isInView( elem, config );
 
