@@ -63,6 +63,7 @@
     "karma-phantomjs-launcher": "~0.1.4",
     "karma-requirejs": "~0.2.2",
     "karma-script-launcher": "~0.1.0",
+    "karma-slimerjs-launcher": "~0.1.2",
     "matchdep": "~0.3.0",
     "mocha": "~2.0.1",
     "mocha-clean": "^0.4.0",
