@@ -54,9 +54,11 @@
             var $iframe, iframe;
 
             beforeEach( function () {
+                // NB The default document content (e.g., the body) in an iframe only gets created after the iframe is
+                // added to the DOM.
                 $iframe = $( "<iframe/>" ).appendTo( "body" );
                 iframe = $iframe[0];
-                if ( !iframe.contentWindow || !iframe.contentDocument ) throw new Error( "Failed to set up iframe tests. Can't access the content of the iframe" );
+                if ( !iframe.contentWindow || !iframe.contentDocument || !iframe.contentDocument.body ) throw new Error( "Failed to set up iframe tests. Can't access the content of the iframe" );
             } );
 
             afterEach( function () {

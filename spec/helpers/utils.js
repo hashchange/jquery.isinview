@@ -15,12 +15,18 @@ function createChildWindow () {
         // Setting the document content (using plain JS - jQuery can't write an entire HTML document, including the
         // doctype and <head> tags).
         childWindow.document.open();
-        childWindow.document.write('<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title></title>\n</head>\n<body>\n</body>\n</html>');
+        childWindow.document.write( '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title></title>\n</head>\n<body>\n</body>\n</html>' );
         childWindow.document.close();
 
     }
 
     return childWindow;
+}
+
+function createIframe () {
+    var iframe = $( "<iframe/>" )[0];
+    iframe.contentDocument.write( '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title></title>\n</head>\n<body>\n</body>\n</html>' );
+    return iframe;
 }
 
 function getTimestamp () {

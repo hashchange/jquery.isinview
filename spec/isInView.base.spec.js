@@ -24,10 +24,15 @@
             iframeSelector = "#" + iframeId;
 
             $el = $( '<div/>' ).width( 50 ).height( 50 );
-            $elInIframe = $( '<div/>' ).width( 50 ).height( 50 );
             $container = $( '<div id="' + containerId + '"/>' ).append( $el );
-            $containerIframe = $( '<iframe id="' + iframeId + '"/>' ).append( $elInIframe );
+
+            $elInIframe = $( '<div/>' ).width( 50 ).height( 50 );
+            $containerIframe = $( '<iframe id="' + iframeId + '"/>' );
             $testStage = $( '<div id="' + testStageId + '"/>' ).append( $container, $containerIframe ).prependTo( 'body' );
+            
+            // NB The default document content (e.g., the body) in an iframe only gets created after the iframe is added
+            // to the DOM.
+            $( $containerIframe[0].contentDocument.body ).append( $elInIframe );
         } );
 
         afterEach( function () {
@@ -64,11 +69,11 @@
                 expect( function () { $el.isInView( $container ); } ).not.to.throw( Error );
             } );
 
-            it( 'accepts an iframe element', function () {
+            it( 'accepts an iframe', function () {
                 expect( function () { $el.isInView( $containerIframe[0] ); } ).not.to.throw( Error );
             } );
 
-            it( 'accepts an iframe element in a jQuery wrapper', function () {
+            it( 'accepts an iframe in a jQuery wrapper', function () {
                 expect( function () { $el.isInView( $containerIframe ); } ).not.to.throw( Error );
             } );
 
@@ -121,12 +126,6 @@
             it( 'throws an error when passed an element which is the child of the queried element, in a jQuery wrapper', function () {
                 var $childContainer = $( "<div/>" ).css( { overflow: "auto" } ).appendTo( $el );
                 expect( function () { $el.isInView( $childContainer ); } ).to.throw( Error );
-            } );
-
-            // todo fix
-            it( 'throws an error when passed an iframe element with inaccessible content due to same-origin restrictions', function () {
-                $containerIframe[0].src = "https://www.google.com/";
-                expect( function () { $el.isInView( $containerIframe ); } ).to.throw( Error );
             } );
 
             it( 'throws an error when passed an empty jQuery wrapper', function () {
