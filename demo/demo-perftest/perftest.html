@@ -1,0 +1,129 @@
+<!doctype html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Performance Test - Demos and Playground</title>
+
+    <!-- ATTN Foundation loaded without JS - stay clear of JS-driven widgets, or add the JS setup -->
+    <!--
+        ATTN jQuery 1.x is used here, making the demo compatible with oldIE. As a side effect,
+        Foundation 5 JS can't be used reliably (requires jQuery 2.x). Stay clear, or switch to
+        jQuery 2.x.
+    -->
+    <link rel="stylesheet" href="../bower_demo_components/foundation/css/normalize.css">
+    <link rel="stylesheet" href="../bower_demo_components/foundation/css/foundation.css">
+
+    <link rel="stylesheet" href="perftest.css">
+</head>
+<body>
+    <!-- check that 'bower install' has been run in the demo dir if bower.json isn't empty -->
+    <script src="../bower-check.js"></script>
+
+    <!-- body content here... -->
+    <section id="testManager">
+        <h1 class="row">Performance test</h1>
+        <form id="spec">
+
+            <div class="row">
+
+                <fieldset id="componentsUnderTest" class="large-4 medium-5 columns">
+                    <legend>Components</legend>
+                    <!--
+                        Values must be the same as
+                        - component class names in the cells of the #results table
+                        - method names on the `tests` object in perftest.js
+                    -->
+                    <div><input type="checkbox" id="jQueryIsInViewTest" name="jQueryIsInView" value="jqIsInView" checked><label for="jQueryIsInViewTest">jQuery.isInView (method)</label></div>
+                    <div><input type="checkbox" id="jQueryIsInViewSelectorTest" name="jQueryIsInViewSelector" value="jqIsInViewSelector" checked><label for="jQueryIsInViewTest">jQuery.isInView (selector)</label></div>
+                    <div><input type="checkbox" id="isInViewportTest" name="isInViewport" value="isInViewport" checked><label for="isInViewportTest">isInViewport</label></div>
+                    <div><input type="checkbox" id="jqueryVisibleTest" name="jqueryVisible" value="jqVisible" checked><label for="jqueryVisibleTest">jquery.visible</label></div>
+                </fieldset>
+
+                <fieldset id="repetition" class=" medium-2 large-offset-1 columns">
+                    <legend>Repetition</legend>
+                    <div>
+                        <label for="elemCount">Elements</label>
+                        <input id="elemCount" type="number" min="50" max="800" step="50" value="300">
+                    </div>
+                    <div>
+                        <label for="repeats">Test runs</label>
+                        <input id="repeats" type="number" min="1" max="100" step="1" value="40">
+                    </div>
+                </fieldset>
+
+                <fieldset id="containerTypes" class="large-3 large-offset-1 medium-4 columns end">
+                    <legend>Test types</legend>
+                    <div><input type="radio" id="windowContainer" name="containerType" value="window" checked><label for="windowContainer">In viewport</label></div>
+                    <div><input type="radio" id="divContainer" name="containerType" value="div"><label for="divContainer">In div container</label></div>
+                    <div><input type="radio" id="iframeContainer" name="containerType" value="iframe"><label for="iframeContainer">In iframe</label></div>
+                </fieldset>
+
+            </div>
+
+            <div class="row">
+
+                <div class="large-3 medium-4 columns end">
+                    <button id="runPerftest" type="submit">Run tests</button>
+                </div>
+
+            </div>
+
+        </form>
+        <div id="results" class="testResults row">
+            <h2><small>Results</small></h2>
+            <table>
+                <thead>
+                <tr>
+                    <th></th>
+                    <th>Average time</th>
+                    <th>Visible elements<sup>*</sup></th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <!-- Component class names must be the same as the values of the component checkboxes -->
+                    <td>jQuery.isInView (method)</td>
+                    <td class="jqIsInView execTime"></td>
+                    <td class="jqIsInView elemCount"></td>
+                </tr>
+                <tr>
+                    <td>jQuery.isInView (selector)</td>
+                    <td class="jqIsInViewSelector execTime"></td>
+                    <td class="jqIsInViewSelector elemCount"></td>
+                </tr>
+                <tr>
+                    <td>isInViewport</td>
+                    <td class="isInViewport execTime"></td>
+                    <td class="isInViewport elemCount"></td>
+                </tr>
+                <tr>
+                    <td>jquery.visible</td>
+                    <td class="jqVisible execTime"></td>
+                    <td class="jqVisible elemCount"></td>
+                </tr>
+                </tbody>
+            </table>
+            <p class="footnote"><sup>*</sup> As detected by the filter. <i>isInViewport</i> includes partially visible elements.</p>
+        </div>
+    </section>
+
+    <section id="testStage"></section>
+    
+    <!-- libraries --><!-- edit and replace with your project libraries as needed -->
+    <script src="../bower_demo_components/jquery/dist/jquery.js"></script>
+    <script src="../bower_demo_components/usertiming/src/usertiming.js"></script>
+
+    <script src="../bower_demo_components/jquery.visible/jquery.visible.js"></script>
+    <script src="../bower_demo_components/isInViewport/lib/isInViewport.js"></script>
+
+    <!-- include project source files here... -->
+    <script src="../../src/jquery.isinview.js"></script>
+
+    <!-- demo js here... -->
+    <script src="perftest.js"></script>
+
+</body>
+</html>

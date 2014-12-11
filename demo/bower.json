@@ -23,7 +23,10 @@
   "dependencies": {
     "jquery": "^1",
     "requirejs": "~2.1.14",
-    "foundation": "~5.3.3"
+    "foundation": "~5.3.3",
+    "jquery.visible": "~1.1.0",
+    "isInViewport": "~2.2.0",
+    "usertiming": "~0.1.4"
   },
   "resolutions": {
     "jquery": "^1"
