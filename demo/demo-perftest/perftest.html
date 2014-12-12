@@ -37,7 +37,7 @@
                         - method names on the `tests` object in perftest.js
                     -->
                     <div><input type="checkbox" id="jQueryIsInViewTest" name="jQueryIsInView" value="jqIsInView" checked><label for="jQueryIsInViewTest">jQuery.isInView (method)</label></div>
-                    <div><input type="checkbox" id="jQueryIsInViewSelectorTest" name="jQueryIsInViewSelector" value="jqIsInViewSelector" checked><label for="jQueryIsInViewTest">jQuery.isInView (selector)</label></div>
+                    <div><input type="checkbox" id="jQueryIsInViewSelectorTest" name="jQueryIsInViewSelector" value="jqIsInViewSelector" checked><label for="jQueryIsInViewSelectorTest">jQuery.isInView (selector)</label></div>
                     <div><input type="checkbox" id="isInViewportTest" name="isInViewport" value="isInViewport" checked><label for="isInViewportTest">isInViewport</label></div>
                     <div><input type="checkbox" id="jqueryVisibleTest" name="jqueryVisible" value="jqVisible" checked><label for="jqueryVisibleTest">jquery.visible</label></div>
                 </fieldset>
@@ -46,11 +46,11 @@
                     <legend>Repetition</legend>
                     <div>
                         <label for="elemCount">Elements</label>
-                        <input id="elemCount" type="number" min="50" max="800" step="50" value="300">
+                        <input id="elemCount" type="number" min="100" max="10000" step="100" value="500">
                     </div>
                     <div>
                         <label for="repeats">Test runs</label>
-                        <input id="repeats" type="number" min="1" max="100" step="1" value="40">
+                        <input id="repeats" type="number" min="0" max="200" step="10" value="50">
                     </div>
                 </fieldset>
 
@@ -65,8 +65,12 @@
 
             <div class="row">
 
-                <div class="large-3 medium-4 columns end">
-                    <button id="runPerftest" type="submit">Run tests</button>
+                <div class="large-3 medium-4 columns">
+                    <button id="runPerftest" class="button" type="submit">Run tests</button>
+                </div>
+
+                <div class="large-3 large-offset-5 medium-4 medium-offset-3 columns end">
+                    <button id="showStage" class="hidden secondary button" type="submit">Show test stage</button>
                 </div>
 
             </div>
@@ -110,7 +114,9 @@
         </div>
     </section>
 
-    <section id="testStage"></section>
+    <button id="hideStage" class="fixed hidden secondary button" type="submit">Hide</button>
+
+    <section id="testStage" class="hidden"></section>
     
     <!-- libraries --><!-- edit and replace with your project libraries as needed -->
     <script src="../bower_demo_components/jquery/dist/jquery.js"></script>

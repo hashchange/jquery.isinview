@@ -1,7 +1,7 @@
 @charset "utf-8";
 
 body {
-    margin: 0.25rem;
+    padding: 0.25rem;
 }
 
 label.disabled {
@@ -31,6 +31,18 @@ label.disabled {
 
 .footnote {
     font-size: 75%;
+}
+
+.hidden {
+    display: none;
+}
+
+.fixed {
+    position: fixed;
+    opacity: 0.8;
+    top: 1rem;
+    left: 1rem;
+    width: 10rem;
 }
 
 #testStage .container {

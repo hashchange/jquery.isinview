@@ -2,11 +2,19 @@
     "use strict";
 
     function createElements ( count, $container ) {
-        var i,
-            $elems = $();
+        var i, elem,
+            container = $container[0],
+            doc = container.ownerDocument,
+            fragment = doc.createDocumentFragment();
 
-        for ( i = 0; i < count; i++ ) $elems = $elems.add( '<div class="testContent">' + ( i + 1 ) + '</div>' );
-        $container.append( $elems );
+        for ( i = 0; i < count; i++ ) {
+            elem = doc.createElement( "div" );
+            elem.setAttribute( "class", "testContent" );
+            elem.appendChild( doc.createTextNode( String ( i + 1 ) ) );
+            fragment.appendChild( elem );
+        }
+
+        container.appendChild( fragment );
     }
 
     function getChecked ( $fieldset ) {
@@ -19,6 +27,30 @@
         return values;
     }
 
+    function getMeasuredDuration( entry, opts ) {
+        var duration = performance.getEntriesByName( entry )[0].duration;
+        if ( opts && opts.rounded ) duration = Math.round( duration );
+        if ( opts && opts.unit ) duration = duration  + "ms";
+
+        return duration;
+    }
+
+    function toggleViewMode () {
+        $testManager.toggle();
+        $testStage.toggle();
+    }
+
+    function toggleUI ( event ) {
+        if ( event ) event.preventDefault();
+
+        toggleViewMode();
+        if ( $hideStageButton.is( ":visible" ) ) {
+            $hideStageButton.hide();
+        } else {
+            $hideStageButton.fadeIn();
+        }
+    }
+
     function setup( spec ) {
         var iframeDocument,
             docReady = $.Deferred();
@@ -28,17 +60,22 @@
         $reportCells.empty();
         $testStage.empty();
 
-        if ( spec.container === "window" ) {
+        // Hide the test manager interface to make room for test elements (otherwise, none of them might classify as
+        // "in view")
+        toggleViewMode();
+        window.scrollTo( 0, 0 );
+
+        if ( spec.containerName === "window" ) {
 
             spec.$stage = $testStage;
             docReady.resolve();
 
         } else {
 
-            spec.$container = $( '<' + spec.container + ' class="container" />' ).appendTo( $testStage );
-            spec.containerSelector = spec.container + ".container";
+            spec.$container = $( '<' + spec.containerName + ' class="container" />' ).appendTo( $testStage );
+            spec.containerSelector = spec.containerName + ".container";
 
-            if ( spec.container === "iframe" ) {
+            if ( spec.containerName === "iframe" ) {
 
                 // Create a standards-compliant document in the iframe. Include the test content style in the document.
                 iframeDocument = spec.$container[0].contentDocument;
@@ -65,15 +102,11 @@
             spec.ready.resolve();
         } );
 
-
-        // Hide the test manager interface to make room for test elements (otherwise, none of them might classify as
-        // "in view")
-        $testManager.hide();
     }
 
     function teardown () {
-        $testStage.empty();
-        $testManager.show();
+        toggleViewMode();
+        $showStageButton.not( ":visible" ).fadeIn();
     }
 
     function readSpec () {
@@ -82,7 +115,7 @@
         spec.components = getChecked( $( "#componentsUnderTest" ) );
         spec.elemCount = Number( $( "#elemCount" ).val() );
         spec.repeats = Number( $( "#repeats" ).val() );
-        spec.container = getChecked( $( "#containerTypes" ) )[0];
+        spec.containerName = getChecked( $( "#containerTypes" ) )[0];
 
         return spec;
     }
@@ -137,7 +170,7 @@
 
                 if ( !results[component].skipped ) {
 
-                    execTime = performance.getEntriesByName( component )[0].duration;
+                    execTime = getMeasuredDuration( component );
                     results[component].runs[i].execTime = execTime;
                     results[component].totalExecTime += execTime;
                     results[component].avgExecTime = Math.round( results[component].totalExecTime / ( i + 1 ) ) + "ms";
@@ -173,6 +206,8 @@
         $reportTable = $( "#results" ).find( "table" ),
         $reportCells = $reportTable.find( "td.execTime, td.elemCount" ),
         $submit = $( "#runPerftest" ),
+        $showStageButton = $( "#showStage" ),
+        $hideStageButton = $( "#hideStage" ),
         tests = {};
 
     $submit.click( function ( event ) {
@@ -192,6 +227,9 @@
 
         } );
     } );
+
+    $showStageButton.click( toggleUI );
+    $hideStageButton.click( toggleUI );
 
     // Test methods, for each component
     //
@@ -217,9 +255,9 @@
     tests.jqIsInViewSelector = function ( spec ) {
         var visibleElements,
             totalElements = spec.$elems.length,
-            skipped = false;;
+            skipped = false;
 
-        if ( spec.container !== "div" ) {
+        if ( spec.containerName !== "div" ) {
             visibleElements = spec.$elems.filter( ':inViewport' ).length;
         } else {
             // The :inViewport selector always uses a window context (also works in an iframe); it can't handle other
