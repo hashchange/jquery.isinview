@@ -189,23 +189,43 @@
      *
      * Do not call if the container is a window (redundant) or a document. Both calls would fail.
      */
-    function getRelativeRect ( rect, $container ) {
-        var containerRect = $container[0].getBoundingClientRect(),
-            containerBorders = $container.css( [ "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth" ] );
+    function getRelativeRect ( rect, $container, cache ) {
+        var containerRect,
+            relativeRectCorrections,
+            containerProps;
 
-        // gBCR coordinates enclose padding, and leave out margin. That is perfect because
-        //
-        // - padding scrolls (ie,o it is part of the scrollable area, and gBCR puts it inside)
-        // - margin doesn't scroll (ie, it pushes the scrollable area to another position, and gBCR records that)
-        //
-        // Borders, however, don't scroll, so they are not part of the scrollable area - but gBCR puts them inside.
-        //
-        // (See http://jsbin.com/pivata/10 for an extensive test of gBCR behaviour.)
+        if ( cache && cache.relativeRectCorrections ) {
+
+            relativeRectCorrections = cache.relativeRectCorrections;
+
+        } else {
+            // gBCR coordinates enclose padding, and leave out margin. That is perfect for scrolling because
+            //
+            // - padding scrolls (ie,o it is part of the scrollable area, and gBCR puts it inside)
+            // - margin doesn't scroll (ie, it pushes the scrollable area to another position, and gBCR records that)
+            //
+            // Borders, however, don't scroll, so they are not part of the scrollable area - but gBCR puts them inside.
+            //
+            // (See http://jsbin.com/pivata/10 for an extensive test of gBCR behaviour.)
+
+            containerRect = $container[0].getBoundingClientRect();
+            containerProps = $container.css( [ "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth" ] );
+            relativeRectCorrections = {
+                top: containerRect.top - parseFloat( containerProps.borderTopWidth ),
+                bottom: containerRect.top + parseFloat( containerProps.borderBottomWidth ),
+                left: containerRect.left - parseFloat( containerProps.borderLeftWidth ),
+                right: containerRect.left + parseFloat( containerProps.borderRightWidth )
+            };
+
+            // Cache the calculations
+            if ( cache ) cache.relativeRectCorrections = $.extend( {}, relativeRectCorrections );
+        }
+
         return {
-            top: rect.top - containerRect.top + parseFloat( containerBorders.borderTopWidth ),
-            bottom: rect.bottom - containerRect.top - parseFloat( containerBorders.borderBottomWidth ),
-            left: rect.left - containerRect.left + parseFloat( containerBorders.borderLeftWidth ),
-            right: rect.right - containerRect.left - parseFloat( containerBorders.borderRightWidth )
+            top: rect.top - relativeRectCorrections.top,
+            bottom: rect.bottom - relativeRectCorrections.bottom,
+            left: rect.left - relativeRectCorrections.left,
+            right: rect.right - relativeRectCorrections.right
         };
     }
 
@@ -314,6 +334,9 @@
         config.excludeHidden = opts.excludeHidden;
         config.containerIsWindow = $.isWindow( container );
 
+        // Create an object to cache DOM queries with regard to the viewport, for faster repeated access.
+        config.cache = {};
+
         return config;
     }
 
@@ -327,6 +350,7 @@
      * @param {HTMLElement|Window} config.container
      * @param {jQuery}             config.$container
      * @param {boolean}            config.containerIsWindow
+     * @param {Object}             config.cache
      * @param {boolean}            config.useHorizontal
      * @param {boolean}            config.useVertical
      * @param {boolean}            config.partially
@@ -339,6 +363,7 @@
         var viewportWidth, viewportHeight, rect,
             container = config.container,
             $container = config.$container,
+            cache = config.cache,
             isInView = true;
 
         if ( elem === container ) throw new Error( "Invalid container: is the same as the element" );
@@ -353,8 +378,8 @@
         // That said, the definition of visibility and the actual test are the same as in jQuery :visible.
         if ( config.excludeHidden && !( elem.offsetWidth > 0 && elem.offsetHeight > 0 ) ) return false;
 
-        if ( config.useHorizontal ) viewportWidth = $container.width();
-        if ( config.useVertical ) viewportHeight = $container.height();
+        if ( config.useHorizontal ) viewportWidth = cache.viewportWidth || ( cache.viewportWidth = _getContainerWidth( $container, config.containerIsWindow ) );
+        if ( config.useVertical ) viewportHeight = cache.viewportHeight || ( cache.viewportHeight = _getContainerHeight( $container, config.containerIsWindow ) );
 
         // We can safely use getBoundingClientRect without a fallback. Its core properties (top, left, bottom, right)
         // are supported on the desktop for ages (IE5+). On mobile, too: supported from Blackberry 6+ (2010), iOS 4
@@ -367,7 +392,7 @@
         // (See http://stackoverflow.com/a/10231202/508355 and Zakas, Professional Javascript (2012), p. 406)
 
         rect = elem.getBoundingClientRect();
-        if ( ! config.containerIsWindow ) rect = getRelativeRect( rect, $container );
+        if ( ! config.containerIsWindow ) rect = getRelativeRect( rect, $container, cache );
 
         if ( config.partially ) {
             if ( config.useVertical ) isInView = rect.top < viewportHeight && rect.bottom > 0;
@@ -379,6 +404,48 @@
 
         return isInView;
 
+    }
+
+    /**
+     * Gets the width of a jQuery-wrapped container. Use it instead of $container.width(). Supports quirks mode for
+     * windows, unlike jQuery.
+     *
+     * @param {jQuery}  $container
+     * @param {boolean} isWindow    required to speed up the process
+     * @returns {number}
+     */
+    function _getContainerWidth ( $container, isWindow ) {
+        return isWindow ? _getWindowDimension( $container, "Width" ) : $container.width();
+    }
+
+    /**
+     * Gets the height of a jQuery-wrapped container. Use it instead of $container.height(). Supports quirks mode for
+     * windows, unlike jQuery.
+     *
+     * @param {jQuery}  $container
+     * @param {boolean} isWindow    required to speed up the process
+     * @returns {number}
+     */
+    function _getContainerHeight ( $container, isWindow ) {
+        return isWindow ? _getWindowDimension( $container, "Height" ) : $container.height();
+    }
+
+    /**
+     * Gets the width or height of a jQuery-wrapped window. Use it instead of $container.width(). Supports quirks mode,
+     * unlike jQuery.
+     *
+     * Window dimensions are calculated as in Zakas, Professional Javascript (2012), p. 404. The standards mode part of
+     * it is the same as in jQuery, too.
+     *
+     * @param {jQuery} $window
+     * @param {string} dimension  "Width" or "Height" (capitalized!)
+     * @returns {number}
+     */
+    function _getWindowDimension ( $window, dimension ) {
+        var doc = $window[0].document,
+            method = "client" + dimension;
+
+        return doc.compatMode === "BackCompat" ? doc.body[method] : doc.documentElement[method];
     }
 
 }( jQuery || $ ));  // todo best solution?
