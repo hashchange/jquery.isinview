@@ -40,6 +40,6 @@ function log ( message ) {
 
 function warn ( message ) {
     "use strict";
-    if ( typeof console !== "undefined" ) console.warn && console.warn( message ) || console.log && console.log( message );
+    if ( typeof console !== "undefined" ) console.warn ? console.warn( message ) : log( "WARN " + message );
 }
 
