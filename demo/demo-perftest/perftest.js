@@ -1,4 +1,4 @@
-( function ( $, performance ) {
+( function ( _, $, performance ) {
     "use strict";
 
     function createElements ( count, $container ) {
@@ -59,6 +59,9 @@
 
         $reportCells.empty();
         $testStage.empty();
+
+        performance.clearMarks();
+        performance.clearMeasures();
 
         // Hide the test manager interface to make room for test elements (otherwise, none of them might classify as
         // "in view")
@@ -143,14 +146,16 @@
 
     function run( spec ) {
 
-        var i, j, component, execTime,
+        var i, j, component, currentTest,
+            prevTest = $.Deferred().resolve(),
+            initialDelay = 100,
+            delay = 10,
             componentCount = spec.components.length,
             results = {};
 
-        for ( i = 0; i < spec.repeats; i++ ) {
+        spec.hasRun =  new $.Promises().postpone().add( prevTest );
 
-            performance.clearMarks();
-            performance.clearMeasures();
+        for ( i = 0; i < spec.repeats; i++ ) {
 
             for ( j = 0; j < componentCount; j++ ) {
 
@@ -158,46 +163,64 @@
                 component = spec.components[ ( i + j ) % componentCount ];
 
                 if ( !results[component] ) results[component] = { totalExecTime: 0, runs: [] };
-                performance.mark( component + " - Start" );
+                currentTest = $.Deferred();
+                spec.hasRun.add( currentTest );
 
-                // Run the test, store the result
-                results[component].runs.push( tests[component]( spec ) );
+                prevTest.done( (function () {
+                    _.delay( execTest, delay * ( i * componentCount ) + j + initialDelay, i, component, currentTest, spec, results );
+                })(  i, component, currentTest, spec, results ) );
 
-                performance.measure( component, component + " - Start" );
-
-                // Integrate current results into the aggregated values
-                results[component].skipped = results[component].skipped || results[component].runs[i].skipped;
-
-                if ( !results[component].skipped ) {
-
-                    execTime = getMeasuredDuration( component );
-                    results[component].runs[i].execTime = execTime;
-                    results[component].totalExecTime += execTime;
-                    results[component].avgExecTime = Math.round( results[component].totalExecTime / ( i + 1 ) ) + "ms";
-
-                    if ( ! results[component].totalElements ) {
-                        results[component].totalElements = results[component].runs[i].totalElements;
-                    } else if ( results[component].totalElements !== results[component].runs[i].totalElements ) {
-                        results[component].totalElements = "ERR inconsistent";
-                    }
-
-                    if ( ! results[component].visibleElements ) {
-                        results[component].visibleElements = results[component].runs[i].visibleElements;
-                    } else if ( results[component].visibleElements !== results[component].runs[i].visibleElements ) {
-                        results[component].visibleElements = "ERR inconsistent";
-                    }
-
-                } else {
-
-                    results[component].totalExecTime = results[component].avgExecTime = results[component].totalElements = results[component].visibleElements = "n/a";
-
-                }
+                prevTest = currentTest;
 
             }
 
         }
 
+        spec.hasRun.stopPostponing();
+
         return results;
+
+    }
+
+    function execTest ( iter, component, currentTest, spec, results ) {
+        var execTime;
+
+        performance.mark( component + iter + " - Start" );
+
+        // Run the test, store the result
+        results[component].runs.push( tests[component]( spec ) );
+
+        performance.measure( component + iter, component + iter + " - Start" );
+
+        // Integrate current results into the aggregated values
+        results[component].skipped = results[component].skipped || results[component].runs[iter].skipped;
+
+        if ( !results[component].skipped ) {
+
+            execTime = getMeasuredDuration( component + iter );
+            results[component].runs[iter].execTime = execTime;
+            results[component].totalExecTime += execTime;
+            results[component].avgExecTime = Math.round( results[component].totalExecTime / ( iter + 1 ) ) + "ms";
+
+            if ( ! results[component].totalElements ) {
+                results[component].totalElements = results[component].runs[iter].totalElements;
+            } else if ( results[component].totalElements !== results[component].runs[iter].totalElements ) {
+                results[component].totalElements = "ERR inconsistent";
+            }
+
+            if ( ! results[component].visibleElements ) {
+                results[component].visibleElements = results[component].runs[iter].visibleElements;
+            } else if ( results[component].visibleElements !== results[component].runs[iter].visibleElements ) {
+                results[component].visibleElements = "ERR inconsistent";
+            }
+
+        } else {
+
+            results[component].totalExecTime = results[component].avgExecTime = results[component].totalElements = results[component].visibleElements = "n/a";
+
+        }
+
+        currentTest.resolve();
 
     }
 
@@ -219,12 +242,13 @@
         setup( spec );
 
         spec.ready.done( function () {
-
             results = run( spec );
+        } );
+
+        spec.hasRun.done( function () {
             writeResults( results );
             teardown();
             highlightResults();
-
         } );
     } );
 
@@ -316,4 +340,4 @@
         };
     };
 
-}( jQuery, performance ));
+}( _, jQuery, performance ));
