@@ -90,7 +90,7 @@
 
         // Check if the elements are children of the container. For performance reasons, only the first element is
         // examined.
-        if ( ! config.containerIsWindow ) checkHierarchy( $elems[0], config.container );
+        checkHierarchy( $elems[0], config.container );
 
         $elems.each( function () {
             if ( _isInView( this, config ) ) inView.push( this );
@@ -139,7 +139,7 @@
         if ( !$elem.length ) return false;
 
         config = _prepareConfig( $elem, container, opts );
-        if ( ! config.containerIsWindow ) checkHierarchy( elem, config.container );
+        checkHierarchy( elem, config.container );
 
         return _isInView( elem, config );
 
@@ -262,7 +262,8 @@
     }
 
     /**
-     * Checks if the element is a child of the container, and throws an error otherwise.
+     * Checks if the element is a child of the container, and throws an error otherwise. Also checks the type of the
+     * element (must indeed be an element node).
      *
      * For performance reasons, this check should *not* be run on every element in a set.
      *
@@ -273,17 +274,18 @@
 
         var elemIsContained;
 
-        // We need a DOM element for this check, so we use the documentElement as a proxy if the container is a window
-        // or document.
+        if ( elem.nodeType !== 1 ) throw new Error( "Invalid node: is not an element" );
+
         if ( $.isWindow( container ) ) {
-            elemIsContained = $.contains( container.document.documentElement, elem );
+            elemIsContained = elem.ownerDocument && container === ( elem.ownerDocument.defaultView || elem.ownerDocument.parentWindow );
         } else if ( container.nodeType === 9 ) {
+            // We need a DOM element for this check, so we use the documentElement as a proxy if the container is a document.
             elemIsContained = $.contains( container.documentElement, elem );
         } else {
             elemIsContained = $.contains( container, elem );
         }
 
-        if ( !elemIsContained ) throw new Error( "Invalid container: is a descendant of the element" );
+        if ( !elemIsContained ) throw new Error( "Invalid container: is not an ancestor of the element" );
 
     }
 
