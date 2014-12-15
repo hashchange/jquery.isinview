@@ -75,6 +75,7 @@
      * @param {boolean}                                   [opts.partially=false]
      * @param {boolean}                                   [opts.excludeHidden=false]
      * @param {string}                                    [opts.direction="both"]
+     * @param {number|string}                             [opts.tolerance=0]          number only (px), or with unit ("px" or "%" only)
      *
      * @returns {jQuery}
      */
@@ -108,6 +109,7 @@
      * @param {boolean}                                   [opts.partially=false]
      * @param {boolean}                                   [opts.excludeHidden=false]
      * @param {string}                                    [opts.direction="both"]
+     * @param {number|string}                             [opts.tolerance=0]          number only (px), or with unit ("px" or "%" only)
      *
      * @returns {jQuery}
      */
@@ -127,6 +129,7 @@
      * @param {boolean}                                   [opts.partially=false]
      * @param {boolean}                                   [opts.excludeHidden=false]
      * @param {string}                                    [opts.direction="both"]
+     * @param {number|string}                             [opts.tolerance=0]          number only (px), or with unit ("px" or "%" only)
      *
      * @returns {boolean}
      */
@@ -154,6 +157,7 @@
      * @param {boolean}                                   [opts.partially=false]
      * @param {boolean}                                   [opts.excludeHidden=false]
      * @param {string}                                    [opts.direction="both"]
+     * @param {number|string}                             [opts.tolerance=0]          number only (px), or with unit ("px" or "%" only)
      *
      * @returns {boolean}
      */
@@ -256,7 +260,7 @@
         }
 
         // Check if the container matches the requirements
-        if ( !$.isWindow( $container[0] ) && $container.css( "overflow" ) === "visible" ) throw new Error( 'Invalid container: is set to overflow:visible. Containers must have the ability to obscure some of their content, otherwise the in-view test is pointless. Containers must be set to overflow:scroll/auto/hide, or be a window' );
+        if ( !$.isWindow( $container[0] ) && $container.css( "overflow" ) === "visible" ) throw new Error( 'Invalid container: is set to overflow:visible. Containers must have the ability to obscure some of their content, otherwise the in-view test is pointless. Containers must be set to overflow:scroll/auto/hide, or be a window (or document, or iframe, as proxies for a window)' );
 
         return $container;
     }
@@ -295,11 +299,31 @@
      * @param {Object} opts
      */
     function checkOptions ( opts ) {
+        var isNum, isNumWithUnit;
 
         if ( opts.direction && !( opts.direction === 'vertical' || opts.direction === 'horizontal' || opts.direction === 'both' ) ) {
             throw new Error( 'Invalid option value: direction = "' + opts.direction + '"' );
         }
 
+        if ( typeof opts.tolerance !== "undefined" ) {
+            isNum = isNumber( opts.tolerance );
+            isNumWithUnit = isString( opts.tolerance ) && ( /^[+-]?\d*\.?\d+(px|%)?$/.test( opts.tolerance ) );
+            if ( ! ( isNum || isNumWithUnit ) ) throw new Error( 'Invalid option value: tolerance = "' + opts.tolerance + '"' );
+        }
+
+    }
+
+    function isNumber ( value ) {
+        // Done as in the Lodash compatibility build, but rejecting NaN as a number.
+        var isNumeric = typeof value === 'number' || value && typeof value === 'object' && Object.prototype.toString.call( value ) === '[object Number]' || false;
+
+        // Reject NaN before returning
+        return isNumeric && value === +value;
+    }
+
+    function isString ( value ) {
+        // Done as in the Lodash compatibility build
+        return typeof value === 'string' || value && typeof value === 'object' && Object.prototype.toString.call(value) === '[object String]' || false;
     }
 
     /**
@@ -312,6 +336,7 @@
      * @param {boolean}                                   [opts.partially=false]
      * @param {boolean}                                   [opts.excludeHidden=false]
      * @param {string}                                    [opts.direction="both"]
+     * @param {number|string}                             [opts.tolerance=0]          number only (px), or with unit ("px" or "%" only)
      *
      * @returns {Object}
      */
@@ -336,6 +361,14 @@
         config.excludeHidden = opts.excludeHidden;
         config.containerIsWindow = $.isWindow( container );
 
+        if ( typeof opts.tolerance !== "undefined" ) {
+            config.toleranceType = ( isNumber( opts.tolerance ) || opts.tolerance.slice( -3 ) === "px" ) ? "add" : "multiply";
+            config.tolerance = config.toleranceType === "add" ? parseFloat( opts.tolerance ) : parseFloat( opts.tolerance ) / 100 + 1;
+        } else {
+            config.tolerance = 0;
+            config.toleranceType = "add";
+        }
+
         // Create an object to cache DOM queries with regard to the viewport, for faster repeated access.
         config.cache = {};
 
@@ -357,12 +390,14 @@
      * @param {boolean}            config.useVertical
      * @param {boolean}            config.partially
      * @param {boolean}            config.excludeHidden
+     * @param {number}             config.tolerance
+     * @param {string}             config.toleranceType
      *
      * @returns {boolean}
      */
     function _isInView ( elem, config ) {
 
-        var viewportWidth, viewportHeight, rect,
+        var viewportWidth, viewportHeight, hTolerance, vTolerance, rect,
             container = config.container,
             $container = config.$container,
             cache = config.cache,
@@ -383,6 +418,10 @@
         if ( config.useHorizontal ) viewportWidth = cache.viewportWidth || ( cache.viewportWidth = _getContainerWidth( $container, config.containerIsWindow ) );
         if ( config.useVertical ) viewportHeight = cache.viewportHeight || ( cache.viewportHeight = _getContainerHeight( $container, config.containerIsWindow ) );
 
+        // Convert tolerance to a px value (if given as a percentage)
+        hTolerance = cache.hTolerance || ( cache.hTolerance = config.toleranceType === "add" ? config.tolerance : viewportWidth * config.tolerance );
+        vTolerance = cache.vTolerance || ( cache.vTolerance = config.toleranceType === "add" ? config.tolerance : viewportHeight * config.tolerance );
+
         // We can safely use getBoundingClientRect without a fallback. Its core properties (top, left, bottom, right)
         // are supported on the desktop for ages (IE5+). On mobile, too: supported from Blackberry 6+ (2010), iOS 4
         // (2010, iPhone 3GS+), according to the jQuery source comment in $.fn.offset.
@@ -397,11 +436,11 @@
         if ( ! config.containerIsWindow ) rect = getRelativeRect( rect, $container, cache );
 
         if ( config.partially ) {
-            if ( config.useVertical ) isInView = rect.top < viewportHeight && rect.bottom > 0;
-            if ( config.useHorizontal ) isInView = isInView && rect.left < viewportWidth && rect.right > 0;
+            if ( config.useVertical ) isInView = rect.top < viewportHeight + vTolerance && rect.bottom > -vTolerance;
+            if ( config.useHorizontal ) isInView = isInView && rect.left < viewportWidth + hTolerance && rect.right > -hTolerance;
         } else {
-            if ( config.useVertical ) isInView = rect.top >= 0 && rect.top < viewportHeight && rect.bottom > 0 && rect.bottom <= viewportHeight;
-            if ( config.useHorizontal ) isInView = isInView && rect.left >= 0 && rect.left < viewportWidth && rect.right > 0 && rect.right <= viewportWidth;
+            if ( config.useVertical ) isInView = rect.top >= -vTolerance && rect.top < viewportHeight + vTolerance && rect.bottom > -vTolerance && rect.bottom <= viewportHeight + vTolerance;
+            if ( config.useHorizontal ) isInView = isInView && rect.left >= -hTolerance && rect.left < viewportWidth + hTolerance && rect.right > -hTolerance && rect.right <= viewportWidth + hTolerance;
         }
 
         return isInView;
