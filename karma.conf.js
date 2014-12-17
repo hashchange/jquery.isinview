@@ -79,7 +79,7 @@ module.exports = function(config) {
     // - IE (only Windows; has to be installed with `npm install karma-ie-launcher`)
     //
     // ATTN Interactive debugging in PhpStorm/WebStorm doesn't work with PhantomJS. Use Firefox or Chrome instead.
-    browsers: ['PhantomJS'],
+    browsers: ['SlimerJS'],
 
 
     // If browser does not capture in given timeout [ms], kill it

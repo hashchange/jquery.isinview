@@ -12,9 +12,13 @@
             $elInIframe,
             childWindow;
 
-        before( function () {
-            childWindow = createChildWindow();
+        before( function ( done ) {
+            var readyDfd = $.Deferred();
+
+            childWindow = createChildWindow( readyDfd );
             if ( !childWindow ) throw new Error( "Can't create child window for tests. Please check if a pop-up blocker is preventing it" );
+
+            readyDfd.done( function () { done(); } );
         } );
 
         after( function () {
@@ -33,17 +37,20 @@
             iframeId = "test_iframe_" + testId;
             iframeSelector = "#" + iframeId;
 
-            $el = $( '<div/>' ).width( 50 ).height( 50 );
-            $container = $( '<div id="' + containerId + '"/>' ).append( $el );
+            $el = $( '<div/>' ).contentBox( 50, 50 ).contentOnly();
+            $container = $( '<div id="' + containerId + '"/>' ).append( $el ).contentOnly();
 
-            $containerIframe = $( '<iframe id="' + iframeId + '"/>' );
-            $testStage = $( '<div id="' + testStageId + '"/>' ).append( $container, $containerIframe ).prependTo( 'body' );
+            $containerIframe = $( '<iframe id="' + iframeId + '"/>' ).contentOnly();
+            $testStage = $( '<div id="' + testStageId + '"/>' ).append( $container, $containerIframe ).prependTo( 'body' ).contentOnly();
             
             // NB The default document content (e.g., the body) in an iframe only gets created after the iframe is added
             // to the DOM.
             iframeDocument = $containerIframe[0].contentDocument;
-            $elInIframe = $( '<div/>', iframeDocument ).width( 50 ).height( 50 );
-            $( iframeDocument.body ).append( $elInIframe );
+            $elInIframe = $( '<div/>', iframeDocument ).contentBox( 50, 50 ).contentOnly();
+            $( iframeDocument.body ).append( $elInIframe ).contentOnly();
+
+            $( "body, html" ).contentOnly();
+            $( iframeDocument ).find( "body, html" ).contentOnly();
         } );
 
         afterEach( function () {
@@ -167,8 +174,8 @@
             it( 'the current (root) window if the element is in the root window', function () {
                 // We test this by checking an element in a nested container. It is invisible in the inner container,
                 // but on screen with regard to the viewport.
-                $container.css( { overflow: "auto", position: "absolute", height: "50px", width: "50px", top: "-50px", left: 0 } );
-                $el.css( { position: "absolute", top: "51px", left: 0 } );
+                $container.overflow( "auto" ).contentBox( 50, 50 ).positionAt( -50, 0 );
+                $el.positionAt( 51, 0 );
                 expect( $el.isInView() ).to.be.true;
             } );
 
@@ -176,12 +183,12 @@
                 // We test this by checking an element in a nested container. It is invisible in the inner container,
                 // but on screen with regard to the viewport.
                 var $elInChildWindow = $( '<div/>', childWindow.document )
-                        .css( { position: "absolute", height: "50px", width: "50px", top: "51px", left: 0 } ),
+                        .contentOnly().contentBox( 50, 50 ).positionAt( 51, 0 ),
 
                     $containerInChildWindow = $( '<div/>', childWindow.document )
                         .prependTo( childWindow.document.body )
                         .append( $elInChildWindow )
-                        .css( { overflow: "auto", position: "absolute", height: "50px", width: "50px", top: "-50px", left: 0 } );
+                        .contentOnly().overflow( "auto" ).contentBox( 50, 50 ).positionAt( -50, 0 );
 
                 expect( $elInChildWindow.isInView() ).to.equal( $elInChildWindow.isInView( childWindow.document ) );
                 expect( $elInChildWindow.isInView() ).to.be.true;
@@ -196,10 +203,10 @@
                 var $containerInIframe = $( '<div/>', iframeDocument )
                     .prependTo( iframeDocument.body )
                     .append( $elInIframe )
-                    .css( { overflow: "auto", position: "absolute", height: "50px", width: "50px", top: "-50px", left: 0 } );
+                    .contentOnly().overflow( "auto" ).contentBox( 50, 50 ).positionAt( -50, 0 );
 
-                $elInIframe.css( { position: "absolute", top: "51px", left: 0 } );
-                $containerIframe.css( { position: "absolute", height: "200px", width: "200px", top: "-400px", left: 0 } );
+                $elInIframe.positionAt( 51, 0 );
+                $containerIframe.contentBox( 200, 200 ).positionAt( -400, 0 );
 
                 expect( $elInIframe.isInView() ).to.equal( $elInIframe.isInView( iframeDocument ) );
                 expect( $elInIframe.isInView() ).to.be.true;
@@ -207,6 +214,28 @@
 
         } );
 
+        describe( 'When the element selection', function () {
+
+            it( 'is empty, isInView returns false', function () {
+                expect( $().isInView() ).to.be.false;
+            } );
+
+            it( 'consists of more than one element, only the first one is examined and the others are ignored', function () {
+                // We test this by
+                // (a) positioning the first element in view and the second outside, and then
+                // (b) positioning the second element in view, and the first outside
+
+                // NB The sort order of the joint collection mirrors the order of the nodes in the DOM, and is not
+                // influenced by the order in which they are added when creating a joint set.
+                var $el2 = $( '<div id="el2"/>' ).contentBox( 50, 50 ).contentOnly().positionAt( -100, -100 ).appendTo( "body" );
+
+                expect( $el.add( $el2 ).isInView() ).to.be.true;
+
+                $el2.prependTo( "body" );
+                expect( $el.add( $el2 ).isInView() ).to.be.false;
+            } );
+
+        } );
     } );
 
 })();
