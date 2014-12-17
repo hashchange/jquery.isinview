@@ -5,7 +5,7 @@
   "authors": [
     "Michael Heim <heim@zeilenwechsel.de>"
   ],
-  "description": "A jQuery plugin, detecting if a elements are visible in a scrollable container. Works in the context of the viewport, iframes, or nested scrolling elements. Provides filter methods and a selector. Comes with an extensive test suite, and aims to be fast.",
+  "description": "A jQuery plugin, detecting if elements are in view inside a scrollable container, or inside a container hiding its overflow. Works with regard to the viewport, iframes, or nested scrolling elements. Provides filter methods and a selector. Is extremely fast, suitable for event handlers which fire frequently and handle large numbers of elements. Comes with an extensive test suite.",
   "main": "dist/jquery.isinview.js",
   "keywords": [
     "jquery",

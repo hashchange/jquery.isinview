@@ -1,6 +1,10 @@
 # jQuery.isInView
 
-TAG LINE HERE.
+This is a work in progress. It basically does its job, and does it very fast indeed. But it hasn't been tested as well as it should be (is in the works).
+
+Documentation is also not ready. Feel free to use it if you take your cues from the source, though. There is a fair bit of documentation in there.
+
+And it doesn't deal with multiple, nested scrolls yet (it isn't aggregating the results, you can use it on the individual containers, though.)
 
 ## Dependencies and setup
 
