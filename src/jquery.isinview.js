@@ -24,8 +24,8 @@
 
         if ( _scrollbarWidth === undefined ) {
 
-            $child = $( "<div/>" ).css( { margin: 0, padding: 0, borderStyle: "none" } );
-            $parent = $( "<div/>" )
+            $child = $( document.createElement( "div" ) ).css( { margin: 0, padding: 0, borderStyle: "none" } );
+            $parent = $( document.createElement( "div" ) )
                 .css( {
                     width: "100px", height: "100px", overflow: "auto",
                     position: "absolute", top: "-500px", left: "-500px",
