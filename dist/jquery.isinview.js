@@ -1,4 +1,4 @@
-// jQuery.isInView, v0.1.0
+// jQuery.isInView, v0.1.1
 // Copyright (c)2014 Michael Heim, Zeilenwechsel.de
 // Distributed under MIT license
 // http://github.com/hashchange/jquery.isinview
@@ -54,9 +54,9 @@
      * If the element is a window, `ownerWindow` returns the window itself. If there aren't any matched elements,
      * `ownerWindow` returns undefined.
      *
-     * If the element is _inside_ a frame or iframe, `ownerWindow`  returns the window representing the iframe . This is
-     * subject to cross-domain security restrictions. Trying to access the content of the (i)frame will throw an error
-     * if it is not from the same domain, or fetched with a different protocol.
+     * If the element is _inside_ an iframe, `ownerWindow` returns the window representing the iframe. (Please keep in
+     * mind that selecting elements inside an iframe is subject to cross-domain security restrictions, and may not
+     * work.)
      *
      * However, if the element _is_ the frame or iframe, `ownerWindow` returns the window containing the (i)frame.
      *
@@ -173,166 +173,26 @@
 
     /**
      * Custom :inViewport selector, equivalent to calling `inViewport()` on the set.
-     *
-     * @param {HTMLElement}   elem
-     * @param {number}        index         in the set of elements
-     * @param {Object}        selectorMeta  not needed here; see http://goo.gl/mVM9gJ for more
-     * @param {HTMLElement[]} elemArray     the current set of elements
      */
-    $.expr[":"].inViewport = function ( elem, index, selectorMeta, elemArray ) {
+    $.expr.match.inviewport = /^(?:inVieport)$/i;
 
-        var config = _selector_configCache;
+    $.expr.setFilters.inviewport = $.expr.createPseudo( function () {
+        return $.expr.createPseudo( function ( elems, matches ) {
+            var i, config,
+                length =  elems.length;
 
-        if ( index === 0 ) {
-            config = _selector_configCache = _prepareConfig( $( elem ) );
-            checkHierarchy( elem, config.container );
-        } else if ( index === elemArray.length - 1 ) {
-            _selector_configCache = undefined;
-        }
+            if ( length ) {
 
-        return _isInView( elem, config );
+                config = _prepareConfig( $( elems ) );
+                checkHierarchy( elems[0], config.container );
 
-    };
+                for ( i = 0; i < length; i++ ) {
+                    matches[i] = _isInView( elems[i], config ) ? elems[i] : undefined;
+                }
+            }
 
-    /**
-     * Gets the TextRectangle coordinates relative to a container element.
-     *
-     * Do not call if the container is a window (redundant) or a document. Both calls would fail.
-     */
-    function getRelativeRect ( rect, $container, cache ) {
-        var containerRect,
-            relativeRectCorrections,
-            containerProps;
-
-        if ( cache && cache.relativeRectCorrections ) {
-
-            relativeRectCorrections = cache.relativeRectCorrections;
-
-        } else {
-            // gBCR coordinates enclose padding, and leave out margin. That is perfect for scrolling because
-            //
-            // - padding scrolls (ie,o it is part of the scrollable area, and gBCR puts it inside)
-            // - margin doesn't scroll (ie, it pushes the scrollable area to another position, and gBCR records that)
-            //
-            // Borders, however, don't scroll, so they are not part of the scrollable area - but gBCR puts them inside.
-            //
-            // (See http://jsbin.com/pivata/10 for an extensive test of gBCR behaviour.)
-
-            // todo what about overflow:hidden? Is the logic above, in particular wrt padding, still valid?
-
-            containerRect = $container[0].getBoundingClientRect();
-            containerProps = $container.css( [ "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth" ] );
-            relativeRectCorrections = {
-                top: containerRect.top - parseFloat( containerProps.borderTopWidth ),
-                bottom: containerRect.top + parseFloat( containerProps.borderBottomWidth ),
-                left: containerRect.left - parseFloat( containerProps.borderLeftWidth ),
-                right: containerRect.left + parseFloat( containerProps.borderRightWidth )
-            };
-
-            // Cache the calculations
-            if ( cache ) cache.relativeRectCorrections = $.extend( {}, relativeRectCorrections );
-        }
-
-        return {
-            top: rect.top - relativeRectCorrections.top,
-            bottom: rect.bottom - relativeRectCorrections.bottom,
-            left: rect.left - relativeRectCorrections.left,
-            right: rect.right - relativeRectCorrections.right
-        };
-    }
-
-    /**
-     * Establishes the container and returns it in a jQuery wrapper.
-     *
-     * Resolves and normalizes the input, which may be a document, HTMLElement, window, or selector string. Corrects
-     * likely mistakes, such as passing in a document or an iframe, rather than the corresponding window.
-     *
-     * @param {Window|Document|HTMLElement|jQuery|string} container
-     * @returns {jQuery}
-     */
-    function wrapContainer ( container ) {
-        var $container;
-
-        $container = container instanceof $ ? container : container === root ? $root : $( container );
-
-        if ( !$container.length ) throw new Error( 'Invalid container: empty jQuery object' );
-
-        container = $container[0];
-
-        if ( container.nodeType === 9 ) {
-            // Document is passed in, transform to window
-            $container = wrapContainer( container.defaultView || container.parentWindow );
-        } else if ( container.nodeType === 1 && container.tagName.toLowerCase() === "iframe" ) {
-            // IFrame element is passed in, transform to IFrame content window
-            $container = wrapContainer( container.contentWindow );
-        }
-
-        // Check if the container matches the requirements
-        if ( !$.isWindow( $container[0] ) && $container.css( "overflow" ) === "visible" ) throw new Error( 'Invalid container: is set to overflow:visible. Containers must have the ability to obscure some of their content, otherwise the in-view test is pointless. Containers must be set to overflow:scroll/auto/hide, or be a window (or document, or iframe, as proxies for a window)' );
-
-        return $container;
-    }
-
-    /**
-     * Checks if the element is a child of the container, and throws an error otherwise. Also checks the type of the
-     * element (must indeed be an element node).
-     *
-     * For performance reasons, this check should *not* be run on every element in a set.
-     *
-     * @param {HTMLElement}                 elem
-     * @param {Window|Document|HTMLElement} container
-     */
-    function checkHierarchy ( elem, container ) {
-
-        var elemIsContained;
-
-        if ( elem.nodeType !== 1 ) throw new Error( "Invalid node: is not an element" );
-
-        if ( $.isWindow( container ) ) {
-            elemIsContained = elem.ownerDocument && container === ( elem.ownerDocument.defaultView || elem.ownerDocument.parentWindow );
-        } else if ( container.nodeType === 9 ) {
-            // We need a DOM element for this check, so we use the documentElement as a proxy if the container is a document.
-            elemIsContained = $.contains( container.documentElement, elem );
-        } else {
-            elemIsContained = $.contains( container, elem );
-        }
-
-        if ( !elemIsContained ) throw new Error( "Invalid container: is not an ancestor of the element" );
-
-    }
-
-    /**
-     * Spots likely option mistakes and throws appropriate errors.
-     *
-     * @param {Object} opts
-     */
-    function checkOptions ( opts ) {
-        var isNum, isNumWithUnit;
-
-        if ( opts.direction && !( opts.direction === 'vertical' || opts.direction === 'horizontal' || opts.direction === 'both' ) ) {
-            throw new Error( 'Invalid option value: direction = "' + opts.direction + '"' );
-        }
-
-        if ( typeof opts.tolerance !== "undefined" ) {
-            isNum = isNumber( opts.tolerance );
-            isNumWithUnit = isString( opts.tolerance ) && ( /^[+-]?\d*\.?\d+(px|%)?$/.test( opts.tolerance ) );
-            if ( ! ( isNum || isNumWithUnit ) ) throw new Error( 'Invalid option value: tolerance = "' + opts.tolerance + '"' );
-        }
-
-    }
-
-    function isNumber ( value ) {
-        // Done as in the Lodash compatibility build, but rejecting NaN as a number.
-        var isNumeric = typeof value === 'number' || value && typeof value === 'object' && Object.prototype.toString.call( value ) === '[object Number]' || false;
-
-        // Reject NaN before returning
-        return isNumeric && value === +value;
-    }
-
-    function isString ( value ) {
-        // Done as in the Lodash compatibility build
-        return typeof value === 'string' || value && typeof value === 'object' && Object.prototype.toString.call(value) === '[object String]' || false;
-    }
+        } );
+    } );
 
     /**
      * Prepares the configuration for a single element query. Returns the config object which is to be consumed by
@@ -423,8 +283,9 @@
         // That said, the definition of visibility and the actual test are the same as in jQuery :visible.
         if ( config.excludeHidden && !( elem.offsetWidth > 0 && elem.offsetHeight > 0 ) ) return false;
 
-        if ( config.useHorizontal ) viewportWidth = cache.viewportWidth || ( cache.viewportWidth = _getContainerWidth( $container, config.containerIsWindow ) );
-        if ( config.useVertical ) viewportHeight = cache.viewportHeight || ( cache.viewportHeight = _getContainerHeight( $container, config.containerIsWindow ) );
+        // todo make sure the cache is used even if viewportWidth or -height is 0 (and perhaps exit right away).
+        if ( config.useHorizontal ) viewportWidth = cache.viewportWidth || ( cache.viewportWidth = getContainerWidth( $container, config.containerIsWindow ) );
+        if ( config.useVertical ) viewportHeight = cache.viewportHeight || ( cache.viewportHeight = getContainerHeight( $container, config.containerIsWindow ) );
 
         // Convert tolerance to a px value (if given as a percentage)
         hTolerance = cache.hTolerance || ( cache.hTolerance = config.toleranceType === "add" ? config.tolerance : viewportWidth * config.tolerance );
@@ -456,6 +317,133 @@
     }
 
     /**
+     * Gets the TextRectangle coordinates relative to a container element.
+     *
+     * Do not call if the container is a window (redundant) or a document. Both calls would fail.
+     */
+    function getRelativeRect ( rect, $container, cache ) {
+        var containerRect,
+            relativeRectCorrections,
+            containerProps;
+
+        if ( cache && cache.relativeRectCorrections ) {
+
+            relativeRectCorrections = cache.relativeRectCorrections;
+
+        } else {
+            // gBCR coordinates enclose padding, and leave out margin. That is perfect for scrolling because
+            //
+            // - padding scrolls (ie,o it is part of the scrollable area, and gBCR puts it inside)
+            // - margin doesn't scroll (ie, it pushes the scrollable area to another position, and gBCR records that)
+            //
+            // Borders, however, don't scroll, so they are not part of the scrollable area - but gBCR puts them inside.
+            //
+            // (See http://jsbin.com/pivata/10 for an extensive test of gBCR behaviour.)
+
+            // todo what about overflow:hidden? Is the logic above, in particular wrt padding, still valid?
+
+            containerRect = $container[0].getBoundingClientRect();
+            containerProps = $container.css( [ "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth" ] );
+            relativeRectCorrections = {
+                top: containerRect.top - parseFloat( containerProps.borderTopWidth ),
+                bottom: containerRect.top + parseFloat( containerProps.borderBottomWidth ),
+                left: containerRect.left - parseFloat( containerProps.borderLeftWidth ),
+                right: containerRect.left + parseFloat( containerProps.borderRightWidth )
+            };
+
+            // Cache the calculations
+            if ( cache ) cache.relativeRectCorrections = $.extend( {}, relativeRectCorrections );
+        }
+
+        return {
+            top: rect.top - relativeRectCorrections.top,
+            bottom: rect.bottom - relativeRectCorrections.bottom,
+            left: rect.left - relativeRectCorrections.left,
+            right: rect.right - relativeRectCorrections.right
+        };
+    }
+
+    /**
+     * Establishes the container and returns it in a jQuery wrapper.
+     *
+     * Resolves and normalizes the input, which may be a document, HTMLElement, window, or selector string. Corrects
+     * likely mistakes, such as passing in a document or an iframe, rather than the corresponding window.
+     *
+     * @param {Window|Document|HTMLElement|jQuery|string} container
+     * @returns {jQuery}
+     */
+    function wrapContainer ( container ) {
+        var $container;
+
+        $container = container instanceof $ ? container : container === root ? $root : $( container );
+
+        if ( !$container.length ) throw new Error( 'Invalid container: empty jQuery object' );
+
+        container = $container[0];
+
+        if ( container.nodeType === 9 ) {
+            // Document is passed in, transform to window
+            $container = wrapContainer( container.defaultView || container.parentWindow );
+        } else if ( container.nodeType === 1 && container.tagName.toLowerCase() === "iframe" ) {
+            // IFrame element is passed in, transform to IFrame content window
+            $container = wrapContainer( container.contentWindow );
+        }
+
+        // Check if the container matches the requirements
+        if ( !$.isWindow( $container[0] ) && $container.css( "overflow" ) === "visible" ) throw new Error( 'Invalid container: is set to overflow:visible. Containers must have the ability to obscure some of their content, otherwise the in-view test is pointless. Containers must be set to overflow:scroll/auto/hide, or be a window (or document, or iframe, as proxies for a window)' );
+
+        return $container;
+    }
+
+    /**
+     * Checks if the element is a descendant of the container, and throws an error otherwise. Also checks the type of
+     * the element (must indeed be an element node).
+     *
+     * For performance reasons, this check should *not* be run on every element in a set.
+     *
+     * @param {HTMLElement}                 elem
+     * @param {Window|Document|HTMLElement} container
+     */
+    function checkHierarchy ( elem, container ) {
+
+        var elemIsContained;
+
+        if ( elem.nodeType !== 1 ) throw new Error( "Invalid node: is not an element" );
+
+        if ( $.isWindow( container ) ) {
+            elemIsContained = elem.ownerDocument && container === ( elem.ownerDocument.defaultView || elem.ownerDocument.parentWindow );
+        } else if ( container.nodeType === 9 ) {
+            // We need a DOM element for this check, so we use the documentElement as a proxy if the container is a document.
+            elemIsContained = $.contains( container.documentElement, elem );
+        } else {
+            elemIsContained = $.contains( container, elem );
+        }
+
+        if ( !elemIsContained ) throw new Error( "Invalid container: is not an ancestor of the element" );
+
+    }
+
+    /**
+     * Spots likely option mistakes and throws appropriate errors.
+     *
+     * @param {Object} opts
+     */
+    function checkOptions ( opts ) {
+        var isNum, isNumWithUnit;
+
+        if ( opts.direction && !( opts.direction === 'vertical' || opts.direction === 'horizontal' || opts.direction === 'both' ) ) {
+            throw new Error( 'Invalid option value: direction = "' + opts.direction + '"' );
+        }
+
+        if ( typeof opts.tolerance !== "undefined" ) {
+            isNum = isNumber( opts.tolerance );
+            isNumWithUnit = isString( opts.tolerance ) && ( /^[+-]?\d*\.?\d+(px|%)?$/.test( opts.tolerance ) );
+            if ( ! ( isNum || isNumWithUnit ) ) throw new Error( 'Invalid option value: tolerance = "' + opts.tolerance + '"' );
+        }
+
+    }
+
+    /**
      * Gets the width of a jQuery-wrapped container. Use it instead of $container.width(). Supports quirks mode for
      * windows, unlike jQuery.
      *
@@ -463,8 +451,8 @@
      * @param {boolean} isWindow    required to speed up the process
      * @returns {number}
      */
-    function _getContainerWidth ( $container, isWindow ) {
-        return isWindow ? _getWindowDimension( $container, "Width" ) : $container.width();
+    function getContainerWidth ( $container, isWindow ) {
+        return isWindow ? getWindowDimension( $container, "Width" ) : $container.width();
     }
 
     /**
@@ -475,8 +463,8 @@
      * @param {boolean} isWindow    required to speed up the process
      * @returns {number}
      */
-    function _getContainerHeight ( $container, isWindow ) {
-        return isWindow ? _getWindowDimension( $container, "Height" ) : $container.height();
+    function getContainerHeight ( $container, isWindow ) {
+        return isWindow ? getWindowDimension( $container, "Height" ) : $container.height();
     }
 
     /**
@@ -490,11 +478,24 @@
      * @param {string} dimension  "Width" or "Height" (capitalized!)
      * @returns {number}
      */
-    function _getWindowDimension ( $window, dimension ) {
+    function getWindowDimension ( $window, dimension ) {
         var doc = $window[0].document,
             method = "client" + dimension;
 
         return doc.compatMode === "BackCompat" ? doc.body[method] : doc.documentElement[method];
+    }
+
+    function isNumber ( value ) {
+        // Done as in the Lodash compatibility build, but rejecting NaN as a number.
+        var isNumeric = typeof value === 'number' || value && typeof value === 'object' && Object.prototype.toString.call( value ) === '[object Number]' || false;
+
+        // Reject NaN before returning
+        return isNumeric && value === +value;
+    }
+
+    function isString ( value ) {
+        // Done as in the Lodash compatibility build
+        return typeof value === 'string' || value && typeof value === 'object' && Object.prototype.toString.call(value) === '[object String]' || false;
     }
 
 }( jQuery || $ ));  // todo best solution?

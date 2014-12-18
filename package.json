@@ -1,6 +1,6 @@
 {
   "name": "jquery.isinview",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "homepage": "https://github.com/hashchange/jquery.isinview",
   "bugs": "https://github.com/hashchange/jquery.isinview/issues",
   "repository": {
@@ -8,7 +8,7 @@
     "url": "https://github.com/hashchange/jquery.isinview.git"
   },
   "author": "Michael Heim <heim@zeilenwechsel.de> (http://www.zeilenwechsel.de/)",
-  "description": "A jQuery plugin, detecting if elements are in view inside a scrollable container, or inside a container hiding its overflow. Works with regard to the viewport, iframes, or nested scrolling elements. Provides filter methods and a selector. Is extremely fast, suitable for event handlers which fire frequently and handle large numbers of elements. Comes with an extensive test suite.",
+  "description": "Detects if elements are in view - inside of the viewport, an iframe, or other containers. Extremely fast.",
   "main": "dist/amd/jquery.isinview.js",
   "keywords": [
     "jquery",
