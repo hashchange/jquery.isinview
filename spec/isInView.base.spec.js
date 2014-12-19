@@ -13,12 +13,12 @@
             childWindow;
 
         before( function ( done ) {
-            var readyDfd = $.Deferred();
+            var childWindowReady = $.Deferred();
 
-            childWindow = createChildWindow( readyDfd );
+            childWindow = createChildWindow( childWindowReady );
             if ( !childWindow ) throw new Error( "Can't create child window for tests. Please check if a pop-up blocker is preventing it" );
 
-            readyDfd.done( function () { done(); } );
+            childWindowReady.done( function () { done(); } );
         } );
 
         after( function () {
@@ -224,18 +224,17 @@
                 // We test this by
                 // (a) positioning the first element in view and the second outside, and then
                 // (b) positioning the second element in view, and the first outside
+                var $elOut = $( '<div/>' ).contentBox( 50, 50 ).contentOnly().positionAt( -100, -100 );
 
-                // NB The sort order of the joint collection mirrors the order of the nodes in the DOM, and is not
-                // influenced by the order in which they are added when creating a joint set.
-                var $el2 = $( '<div id="el2"/>' ).contentBox( 50, 50 ).contentOnly().positionAt( -100, -100 ).appendTo( "body" );
+                $elOut.insertAfter( $el );
+                expect( $container.children().isInView() ).to.be.true;
 
-                expect( $el.add( $el2 ).isInView() ).to.be.true;
-
-                $el2.prependTo( "body" );
-                expect( $el.add( $el2 ).isInView() ).to.be.false;
+                $elOut.insertBefore( $el );
+                expect( $container.children().isInView() ).to.be.false;
             } );
 
         } );
+
     } );
 
 })();

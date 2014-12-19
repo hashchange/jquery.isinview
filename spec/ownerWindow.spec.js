@@ -44,7 +44,6 @@
 
             it( 'returns undefined when called on an empty jQuery set', function () {
                 expect( $().ownerWindow() ).to.be.undefined;
-                expect( $( "#nonexistent" ).ownerWindow() ).to.be.undefined;
             } );
 
         } );
