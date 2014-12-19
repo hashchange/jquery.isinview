@@ -276,6 +276,19 @@
         };
     };
 
+    tests.jqIsInViewContentBox = function ( spec ) {
+        var visibleElements,
+            totalElements = spec.$elems.length;
+
+        visibleElements = spec.$elems.inView( spec.$container, { box: "content-box" } ).length;
+
+        return {
+            totalElements: totalElements,
+            visibleElements: visibleElements,
+            skipped: false
+        };
+    };
+
     tests.jqIsInViewSelector = function ( spec ) {
         var visibleElements,
             totalElements = spec.$elems.length,

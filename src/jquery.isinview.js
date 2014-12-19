@@ -1,8 +1,7 @@
 ;( function( $ ) {
     "use strict";
 
-    var _selector_configCache,
-        _scrollbarWidth,
+    var _scrollbarWidth,
         root = window,
         $root = $( window );
 
@@ -70,11 +69,15 @@
      * The container can be a window, iframe, scrollable element (overflow:scroll or overflow:auto), an element with
      * overflow:hidden, or a selector for any of these. Defaults to the window containing the elements.
      *
+     * The size of the element is defined by its border-box, which includes its padding and border. Alternatively, the
+     * content-box of the element can be used, excluding padding and borders.
+     *
      * @param {Window|Document|HTMLElement|jQuery|string} [container=window]
      * @param {Object}                                    [opts]
      * @param {boolean}                                   [opts.partially=false]
      * @param {boolean}                                   [opts.excludeHidden=false]
      * @param {string}                                    [opts.direction="both"]
+     * @param {string}                                    [opts.box="border-box"]     alternatively, "content-box"
      * @param {number|string}                             [opts.tolerance=0]          number only (px), or with unit ("px" or "%" only)
      *
      * @returns {jQuery}
@@ -105,11 +108,12 @@
      *
      * Shorthand for `$elem.inView( $elem.ownerWindow(), opts );`
      *
-     * @param {Object}                                    [opts]
-     * @param {boolean}                                   [opts.partially=false]
-     * @param {boolean}                                   [opts.excludeHidden=false]
-     * @param {string}                                    [opts.direction="both"]
-     * @param {number|string}                             [opts.tolerance=0]          number only (px), or with unit ("px" or "%" only)
+     * @param {Object}        [opts]
+     * @param {boolean}       [opts.partially=false]
+     * @param {boolean}       [opts.excludeHidden=false]
+     * @param {string}        [opts.direction="both"]
+     * @param {string}        [opts.box="border-box"]     alternatively, "content-box"
+     * @param {number|string} [opts.tolerance=0]          number only (px), or with unit ("px" or "%" only)
      *
      * @returns {jQuery}
      */
@@ -124,11 +128,15 @@
      * The container can be a window, iframe, scrollable element (overflow:scroll or overflow:auto), an element with
      * overflow:hidden, or a selector for any of these. Defaults to the window containing the elements.
      *
+     * The size of the element is defined by its border-box, which includes its padding and border. Alternatively, the
+     * content-box of the element can be used, excluding padding and borders.
+     *
      * @param {Window|Document|HTMLElement|jQuery|string} [container=window]
      * @param {Object}                                    [opts]
      * @param {boolean}                                   [opts.partially=false]
      * @param {boolean}                                   [opts.excludeHidden=false]
      * @param {string}                                    [opts.direction="both"]
+     * @param {string}                                    [opts.box="border-box"]     alternatively, "content-box"
      * @param {number|string}                             [opts.tolerance=0]          number only (px), or with unit ("px" or "%" only)
      *
      * @returns {boolean}
@@ -153,11 +161,12 @@
      *
      * Shorthand for `$elem.isInView( $elem.ownerWindow(), opts );`
      *
-     * @param {Object}                                    [opts]
-     * @param {boolean}                                   [opts.partially=false]
-     * @param {boolean}                                   [opts.excludeHidden=false]
-     * @param {string}                                    [opts.direction="both"]
-     * @param {number|string}                             [opts.tolerance=0]          number only (px), or with unit ("px" or "%" only)
+     * @param {Object}        [opts]
+     * @param {boolean}       [opts.partially=false]
+     * @param {boolean}       [opts.excludeHidden=false]
+     * @param {string}        [opts.direction="both"]
+     * @param {string}        [opts.box="border-box"]     alternatively, "content-box"
+     * @param {number|string} [opts.tolerance=0]          number only (px), or with unit ("px" or "%" only)
      *
      * @returns {boolean}
      */
@@ -198,6 +207,7 @@
      * @param {boolean}                                   [opts.partially=false]
      * @param {boolean}                                   [opts.excludeHidden=false]
      * @param {string}                                    [opts.direction="both"]
+     * @param {string}                                    [opts.box="border-box"]     alternatively, "content-box"
      * @param {number|string}                             [opts.tolerance=0]          number only (px), or with unit ("px" or "%" only)
      *
      * @returns {Object}
@@ -221,6 +231,7 @@
 
         config.partially = opts.partially;
         config.excludeHidden = opts.excludeHidden;
+        config.borderBox = opts.box !== 'content-box';
         config.containerIsWindow = $.isWindow( container );
 
         if ( typeof opts.tolerance !== "undefined" ) {
@@ -252,6 +263,7 @@
      * @param {boolean}            config.useVertical
      * @param {boolean}            config.partially
      * @param {boolean}            config.excludeHidden
+     * @param {boolean}            config.borderBox
      * @param {number}             config.tolerance
      * @param {string}             config.toleranceType
      *
@@ -294,7 +306,7 @@
         //
         // (See http://stackoverflow.com/a/10231202/508355 and Zakas, Professional Javascript (2012), p. 406)
 
-        rect = elem.getBoundingClientRect();
+        rect = config.borderBox ? elem.getBoundingClientRect() : getContentRect( elem );
         if ( ! config.containerIsWindow ) rect = getRelativeRect( rect, $container, cache );
 
         if ( config.partially ) {
@@ -334,12 +346,12 @@
             // (See http://jsbin.com/pivata/10 for an extensive test of gBCR behaviour.)
 
             containerRect = $container[0].getBoundingClientRect();
-            containerProps = $container.css( [ "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth" ] );
+            containerProps = toFloat( $container.css( [ "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth" ] ) );
             relativeRectCorrections = {
-                top: containerRect.top - parseFloat( containerProps.borderTopWidth ),
-                bottom: containerRect.top + parseFloat( containerProps.borderBottomWidth ),
-                left: containerRect.left - parseFloat( containerProps.borderLeftWidth ),
-                right: containerRect.left + parseFloat( containerProps.borderRightWidth )
+                top: containerRect.top - containerProps.borderTopWidth,
+                bottom: containerRect.top + containerProps.borderBottomWidth,
+                left: containerRect.left - containerProps.borderLeftWidth,
+                right: containerRect.left + containerProps.borderRightWidth
             };
 
             // Cache the calculations
@@ -351,6 +363,46 @@
             bottom: rect.bottom - relativeRectCorrections.bottom,
             left: rect.left - relativeRectCorrections.left,
             right: rect.right - relativeRectCorrections.right
+        };
+    }
+
+    /**
+     * Calculates the rect of the content-box. Similar to getBoundingClientRect, but excludes padding and borders - and
+     * is much slower.
+     *
+     * @param   {HTMLElement} elem
+     * @returns {Object}
+     */
+    function getContentRect( elem ) {
+
+        var rect = elem.getBoundingClientRect(),
+            computedStyles = window.getComputedStyle( elem ),
+            props = {
+                borderTopWidth: $.css( elem, "borderTopWidth", false, computedStyles ),
+                borderRightWidth: $.css( elem, "borderRightWidth", false, computedStyles ),
+                borderBottomWidth: $.css( elem, "borderBottomWidth", false, computedStyles ),
+                borderLeftWidth: $.css( elem, "borderLeftWidth", false, computedStyles ),
+                paddingTop: $.css( elem, "paddingTop", false, computedStyles ),
+                paddingRight: $.css( elem, "paddingRight", false, computedStyles ),
+                paddingBottom: $.css( elem, "paddingBottom", false, computedStyles ),
+                paddingLeft: $.css( elem, "paddingLeft", false, computedStyles )
+            };
+
+        // NB Building the props object this way is significantly faster than the more convenient, conventional jQuery
+        // approach:
+        //
+        //    props = $( elem ).css( [
+        //        "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth",
+        //        "paddingTop", "paddingRight", "paddingBottom", "paddingLeft"
+        //    ] );
+
+        props = toFloat( props );
+
+        return {
+            top: rect.top + props.paddingTop + props.borderTopWidth,
+            right: rect.right - ( props.paddingRight + props.borderRightWidth ),
+            bottom: rect.bottom - ( props.paddingBottom + props.borderBottomWidth ),
+            left: rect.left + props.paddingLeft + props.borderLeftWidth
         };
     }
 
@@ -426,6 +478,10 @@
             throw new Error( 'Invalid option value: direction = "' + opts.direction + '"' );
         }
 
+        if ( opts.box && !( opts.box === 'border-box' || opts.box === 'content-box' ) ) {
+            throw new Error( 'Invalid option value: box = "' + opts.box + '"' );
+        }
+
         if ( typeof opts.tolerance !== "undefined" ) {
             isNum = isNumber( opts.tolerance );
             isNumWithUnit = isString( opts.tolerance ) && ( /^[+-]?\d*\.?\d+(px|%)?$/.test( opts.tolerance ) );
@@ -474,6 +530,22 @@
             method = "client" + dimension;
 
         return doc.compatMode === "BackCompat" ? doc.body[method] : doc.documentElement[method];
+    }
+
+    /**
+     * Calls parseFloat on each value. Useful for removing units from numeric values.
+     *
+     * @param   {Object} object
+     * @returns {Object}
+     */
+    function toFloat ( object ) {
+        var transformed =  {};
+
+        $.map( object, function ( value, key ) {
+            transformed[key] =  parseFloat( value );
+        } );
+
+        return transformed;
     }
 
     function isNumber ( value ) {

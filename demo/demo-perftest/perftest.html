@@ -37,6 +37,7 @@
                         - method names on the `tests` object in perftest.js
                     -->
                     <div><input type="checkbox" id="jQueryIsInViewTest" name="jQueryIsInView" value="jqIsInView" checked><label for="jQueryIsInViewTest">jQuery.isInView (method)</label></div>
+                    <div><input type="checkbox" id="jQueryIsInViewContentBoxTest" name="jQueryIsInViewContentBox" value="jqIsInViewContentBox" checked><label for="jQueryIsInViewContentBoxTest">jQuery.isInView (method, content box)</label></div>
                     <div><input type="checkbox" id="jQueryIsInViewSelectorTest" name="jQueryIsInViewSelector" value="jqIsInViewSelector" checked><label for="jQueryIsInViewSelectorTest">jQuery.isInView (selector)</label></div>
                     <div><input type="checkbox" id="isInViewportTest" name="isInViewport" value="isInViewport" checked><label for="isInViewportTest">isInViewport</label></div>
                     <div><input type="checkbox" id="jqueryVisibleTest" name="jqueryVisible" value="jqVisible" checked><label for="jqueryVisibleTest">jquery.visible</label></div>
@@ -93,6 +94,11 @@
                     <td>jQuery.isInView (method)</td>
                     <td class="jqIsInView execTime"></td>
                     <td class="jqIsInView elemCount"></td>
+                </tr>
+                <tr>
+                    <td>jQuery.isInView (method, content box)</td>
+                    <td class="jqIsInViewContentBox execTime"></td>
+                    <td class="jqIsInViewContentBox elemCount"></td>
                 </tr>
                 <tr>
                     <td>jQuery.isInView (selector)</td>
