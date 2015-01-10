@@ -32,6 +32,24 @@
             expect( $.scrollbarWidth() ).to.equal( 50 - $hasScrollbars[0].clientWidth );
         } );
 
+        describe( 'The method does not rely on the exposed plugin API. When all other public methods of the plugin are deleted from jQuery', function () {
+
+            var globalScrollBarWidth, deletedApi;
+
+            beforeEach( function () {
+                globalScrollBarWidth = $.scrollbarWidth();
+                deletedApi = deletePluginApiExcept( "scrollbarWidth", true );
+            } );
+
+            afterEach( function () {
+                restorePluginApi( deletedApi );
+            } );
+
+            it( 'it works correctly and returns the global scroll bar width', function () {
+                expect( $.scrollbarWidth() ).to.equal( globalScrollBarWidth );
+            } );
+
+        } );
     } );
 
 })();

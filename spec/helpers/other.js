@@ -73,6 +73,16 @@ function deletePluginApiExcept ( exceptionName, isJQueryGlobal ) {
     return removed;
 }
 
+/**
+ * Deletes all methods which have been added by the plugin to jQuery and jQuery.fn. Returns an object containing the
+ * deleted methods, for restoration with restorePluginApi().
+ *
+ * @returns {{global: {}, fn: {}}}          the removed methods, stored in the .global and .fn properties
+ */
+function deletePluginApi () {
+    return deletePluginApiExcept( "" );
+}
+
 function restorePluginApi ( removed ) {
 
     $.each( removed.global, function ( name, func ) {

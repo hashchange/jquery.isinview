@@ -235,6 +235,32 @@
 
         } );
 
+        describe( 'The method does not rely on the exposed plugin API. When all other public methods of the plugin are deleted from jQuery', function () {
+
+            var deletedApi;
+
+            beforeEach( function () {
+                deletedApi = deletePluginApiExcept( "isInView" );
+            } );
+
+            afterEach( function () {
+                restorePluginApi( deletedApi );
+            } );
+
+            it( 'it works correctly for a window container. When the element is in view in the global window, $.fn.isInView returns true', function () {
+                expect( $el.isInView() ).to.be.true;
+            } );
+
+            it( 'it works correctly for a an HTMLElement container. When the element is in view in another element set to overflow:auto, $.fn.isInView returns true', function () {
+                $container
+                    .contentBox( 200, 200 )
+                    .overflow ( "auto" );
+
+                expect( $el.isInView( $container ) ).to.be.true;
+            } );
+
+        } );
+
     } );
 
 })();

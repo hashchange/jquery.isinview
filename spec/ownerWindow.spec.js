@@ -158,6 +158,25 @@
 
         } );
 
+        describe( 'The method does not rely on the exposed plugin API. When all other public methods of the plugin are deleted from jQuery', function () {
+
+            var deletedApi;
+
+            beforeEach( function () {
+                deletedApi = deletePluginApiExcept( "ownerWindow" );
+            } );
+
+            afterEach( function () {
+                restorePluginApi( deletedApi );
+            } );
+
+            it( 'it works correctly and returns the appropriate owner window', function () {
+                $testElem = $( "<div/>" ).appendTo( "body" );
+                expect( $testElem.ownerWindow() ).to.equal( window );
+            } );
+
+        } );
+
     } );
 
 })();

@@ -39,6 +39,32 @@
 
             } );
 
+            describe( 'The method does not rely on the exposed plugin API. When all other public methods of the plugin are deleted from jQuery', function () {
+
+                var deletedApi;
+
+                beforeEach( function () {
+                    deletedApi = deletePluginApiExcept( "inView" );
+                } );
+
+                afterEach( function () {
+                    restorePluginApi( deletedApi );
+                } );
+
+                it( 'it works correctly for a window container. When the element is in view in the global window, $.fn.inView returns the element', function () {
+                    expect( $el.inView() ).to.eql( $el );
+                } );
+
+                it( 'it works correctly for a an HTMLElement container. When the element is in view in another element set to overflow:auto, $.fn.inView returns the element', function () {
+                    $container
+                        .contentBox( 200, 200 )
+                        .overflow ( "auto" );
+
+                    expect( $el.inView( $container ) ).to.eql( $el );
+                } );
+
+            } );
+
         } );
 
         describe( ':inViewport', function () {
@@ -68,6 +94,24 @@
                     $elOut.insertBefore( $el );
                     expect( $container.children().filter( ':inViewport' ).get() ).to.eql( $el.get() );
                     expect( $container.children().filter( 'div:inViewport' ).get() ).to.eql( $el.get() );
+                } );
+
+            } );
+
+            describe( 'The filter does not rely on the exposed plugin API. When all public methods of the plugin, except the filter, are deleted from jQuery', function () {
+
+                var deletedApi;
+
+                beforeEach( function () {
+                    deletedApi = deletePluginApi();
+                } );
+
+                afterEach( function () {
+                    restorePluginApi( deletedApi );
+                } );
+
+                it( 'it works correctly. When the element is in view in the global window, :inViewport returns the element', function () {
+                    expect( $el.filter( ':inViewport' ).get() ).to.eql( $el.get() );
                 } );
 
             } );
