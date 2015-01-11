@@ -21,8 +21,8 @@
 
         describe( 'When the element selection', function () {
 
-            it( 'is empty, $.fn.scrollbarWidth throws an error', function () {
-                expect( function () { $().scrollbarWidth(); } ).to.throw( Error );
+            it( 'is empty, $.fn.scrollbarWidth returns undefined', function () {
+                expect( $().scrollbarWidth() ).to.be.undefined;
             } );
 
             it( 'consists of more than one element, only the first one is examined and the others are ignored', function () {

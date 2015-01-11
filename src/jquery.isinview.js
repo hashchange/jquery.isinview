@@ -15,7 +15,7 @@
      * The method
      *
      * - only acts on the first element of a jQuery set
-     * - throws an error if the set is empty
+     * - returns undefined if the set is empty
      * - looks for window scroll bars if called on a window, document, or document element (html tag)
      * - looks for scroll bars on the content window of an iframe if called on the iframe element
      * - looks for scroll bars on the body tag itself if called on the body. Usually, there aren't any - if you want to
@@ -56,6 +56,8 @@
      *   needs to be scrolled.
      * - It returns 0 if there is no scroll bar, or if there is a scroll of width 0, which is the standard behaviour of
      *   Safari on the Mac and on iOS.
+     *
+     * For the type of jQuery sets the method can be called on, and how they are handled, see $.fn.hasScrollbar.
      *
      * @param   {string} [axis="both"]  values "horizontal", "vertical", "both"
      * @returns {number|Object}
@@ -231,7 +233,7 @@
         queryVertical = axis === "vertical" || queryBoth;
 
         if ( axis !== "horizontal" && axis !== "vertical" && axis !== "both" ) throw new Error( "Invalid parameter value: axis = " + axis );
-        if ( ! $elem.length ) throw new Error( 'Invalid set: empty jQuery object' );
+        if ( ! $elem.length ) return;
 
         // Transformations:
         // - If called on a window, we need document, documentElement and body, and discard the element
@@ -393,7 +395,7 @@
         queryVertical = axis === "vertical" || queryBoth;
 
         if ( axis !== "horizontal" && axis !== "vertical" && axis !== "both" ) throw new Error( "Invalid parameter value: axis = " + axis );
-        if ( ! $elem.length ) throw new Error( 'Invalid set: empty jQuery object' );
+        if ( ! $elem.length ) return;
 
         // Bail out early, without an $elem.hasScrollbar() query, if scroll bars don't take up any space.
         if ( globalWidth === 0 ) return queryBoth ? { horizontal: 0, vertical: 0 } : 0;
@@ -439,7 +441,7 @@
         var config,
             elemsInView = [];
 
-        if ( !$elems.length ) return $();
+        if ( ! $elems.length ) return $();
 
         config = _prepareConfig( $elems, container, opts );
 
@@ -474,7 +476,7 @@
         var config,
             elem = $elem[0];
 
-        if ( !$elem.length ) return false;
+        if ( ! $elem.length ) return false;
 
         config = _prepareConfig( $elem, container, opts );
         checkHierarchy( elem, config.container );

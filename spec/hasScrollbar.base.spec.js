@@ -21,8 +21,8 @@
 
         describe( 'When the element selection', function () {
 
-            it( 'is empty, $.fn.hasScrollbar throws an error', function () {
-                expect( function () { $().hasScrollbar(); } ).to.throw( Error );
+            it( 'is empty, $.fn.hasScrollbar returns undefined', function () {
+                expect( $().hasScrollbar() ).to.be.undefined;
             } );
 
             it( 'consists of more than one element, only the first one is examined and the others are ignored', function () {
