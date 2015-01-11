@@ -2,15 +2,13 @@
 
 This jQuery plugin tells you if elements are in view inside a scrollable container, or inside a container hiding its overflow. It works with regard to the viewport, iframes, or nested scrolling elements. 
 
-You can choose between filter methods and an `inViewport` selector. It does its job ridiculously fast, and is suitable for event handlers which fire frequently and handle large numbers of elements. (-And it -comes with- _will_ have an extensive test suite-).
+You can choose between filter methods and an `inViewport` selector. It does its job ridiculously fast, and is suitable for event handlers which fire frequently and handle large numbers of elements. (And it comes with an extensive test suite).
 
 **Please note:**
 
-This plugin is brand new and still a work in progress. It basically does its job, and does it very fast indeed. But it hasn't been tested as well as it should be (is in the works).
+This plugin is new and still a work in progress. As you can see, the documentation is not ready yet. Just have a look at the source, though. The API is actually quite well documented in there.
 
-Documentation is also not ready. Feel free to use it if you take your cues from the source, though. The API is actually quite well documented in there.
-
-For now, the plugin doesn't deal with multiple, nested scrolls (it isn't aggregating the results, you can use it on the individual containers, though.)
+For now, the plugin doesn't deal with multiple, nested scrolls. (It merely isn't aggregating the results for you yet. But you can call it on each individual container and simply chain the results with `&&`.)
 
 ## Dependencies and setup
 
@@ -68,7 +66,7 @@ New test files in the `spec` directory are picked up automatically, no need to e
 
 MIT.
 
-Copyright (c) 2014 Michael Heim.
+Copyright (c) 2014, 2015 Michael Heim.
 
 [Backbone]: http://backbonejs.org/ "Backbone.js"
 [Node.js]: http://nodejs.org/ "Node.js"

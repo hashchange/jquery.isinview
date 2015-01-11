@@ -1,6 +1,6 @@
 {
   "name": "jquery.isinview",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "homepage": "https://github.com/hashchange/jquery.isinview",
   "bugs": "https://github.com/hashchange/jquery.isinview/issues",
   "repository": {
@@ -62,7 +62,7 @@
     "karma-mocha-reporter": "~0.3.1",
     "karma-phantomjs-launcher": "~0.1.4",
     "karma-requirejs": "~0.2.2",
-    "karma-slimerjs-launcher": "git+https://git@github.com/hashchange/karma-slimerjs-launcher.git",
+    "karma-slimerjs-launcher": "git+https://git@github.com/karma-runner/karma-slimerjs-launcher.git",
     "matchdep": "~0.3.0",
     "mocha": "~2.0.1",
     "mocha-clean": "^0.4.0",
