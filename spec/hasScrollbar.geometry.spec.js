@@ -303,10 +303,22 @@
 
         describe( 'Document', function () {
 
-            it( 'When it is called on a document, an error is thrown', function () {
-                // Checking for scroll bars on a document doesn't make sense, as a document is always as big as its
-                // content.
-                expect( function () { $( document ).hasScrollbar(); } ).to.throw( Error );
+            var $window, viewportHeight;
+
+            beforeEach( function () {
+                f = Setup.create( "window", f );
+
+                return f.ready.done( function () {
+                    $window = $( window );
+                    viewportHeight = $window.height();
+                } );
+            } );
+
+            it( 'When it is called on the document, it returns the result for window scroll bars instead', function () {
+                // We expand the body beyond the viewport vertically only, and verify that the returned result matches
+                // that of the window.
+                f.$el.height( viewportHeight + 1 );
+                expect( $( document ).hasScrollbar() ).to.eql( $window.hasScrollbar() );
             } );
 
         } );

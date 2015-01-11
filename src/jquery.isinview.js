@@ -16,11 +16,10 @@
      *
      * - only acts on the first element of a jQuery set
      * - throws an error if the set is empty
-     * - throws an error if called on the document
-     * - looks for window scroll bars if called on the document element (html tag)
+     * - looks for window scroll bars if called on a window, document, or document element (html tag)
      * - looks for scroll bars on the content window of an iframe if called on the iframe element
      * - looks for scroll bars on the body tag itself if called on the body. Usually, there aren't any - if you want to
-     *   check if the window has scroll bars, call the method on the window.
+     *   find out about window scroll bars, don't call the method on the body.
      *
      * Note that the method checks for the presence of a scroll bar and nothing else. It doesn't mean that the scroll
      * bar actually scrolls, or takes up any space:
@@ -215,10 +214,10 @@
      */
     function hasScrollbar ( $elem, axis ) {
 
-        // todo clean up
         var queryHorizontal, queryVertical, queryBoth, horizontal, vertical,
-            $document, documentElement, body, isWindow,
-            overflowPropNames, props, bodyProps, bodyBoxProps, bodyOverflowHiddenX, bodyOverflowHiddenY, bodyPositioned,
+            isWindow, _document, $document, documentElement, body,
+            overflowPropNames, props, bodyProps, bodyBoxProps,
+            bodyOverflowHiddenX, bodyOverflowHiddenY, bodyPositioned,
             overflowScrollX, overflowScrollY, overflowAutoX, overflowAutoY, overflowVisibleX, overflowVisibleY,
             innerWidth, innerHeight, scrollWidth, scrollHeight,
             bodyScrollWidth, bodyScrollHeight, ddeScrollWidth, ddeScrollHeight,
@@ -234,38 +233,43 @@
         if ( axis !== "horizontal" && axis !== "vertical" && axis !== "both" ) throw new Error( "Invalid parameter value: axis = " + axis );
         if ( ! $elem.length ) throw new Error( 'Invalid set: empty jQuery object' );
 
-        // Checking for scroll bars on a document doesn't make sense, as a document is always as big as its content. The
-        // user might have meant to target the window, but we can't be reasonably sure (it could signal a true bug in
-        // the calling code as well), so we throw an error.
-        if ( elem.nodeType === 9 ) throw new Error( "Invalid node type: document node. Call it on $(window) if you want to check for window scroll bars" );
-
         // Transformations:
-        // - If called on the document element, transform it to window, which has been the user intent
-        // - If called on an iframe element, transform it to the iframe content window
+        // - If called on a window, we need document, documentElement and body, and discard the element
+        // - If called on the document or document element, we treat it like a call on window (above)
+        // - If called on an iframe element, we treat it like a window call, using the iframe content window
         isWindow = $.isWindow( elem );
-        if ( ! isWindow && elem === elem.ownerDocument.documentElement ) {
-            elem = ownerWindow( $elem );
-            $elem = $( elem );
+        if ( isWindow ) {
+            _document = elem.document;
+        } else if ( elem.nodeType === 9 ) {
+            _document = elem;
+            isWindow = true;
+        } else if ( elem === elem.ownerDocument.documentElement ) {
+            _document = elem.ownerDocument;
             isWindow = true;
         } else if ( elem.nodeType === 1 && elem.tagName.toLowerCase() === "iframe" ) {
-            elem = elem.contentWindow;
-            $elem = $( elem );
+            _document = elem.contentDocument || elem.contentWindow.document;
             isWindow = true;
         }
 
-        // Query the overflow settings
+        if ( isWindow ) {
+            $document = $( _document );
+            documentElement = _document.documentElement;
+            body = _document.body;
+            elem = $elem = undefined;
+        }
+
+        // Query the overflow settings; if we deal with window scroll bars, we also need those of the body
         overflowPropNames = [ "overflow" ];
         if ( queryHorizontal ) overflowPropNames.push( "overflowX" );
         if ( queryVertical ) overflowPropNames.push( "overflowY" );
         if ( isWindow ) {
-            body = elem.document.body;
             bodyProps = getCss( body, [ "overflow", "overflowX", "overflowY", "position" ], { toLowerCase: true } );
             bodyOverflowHiddenX = bodyProps.overflow === "hidden" || bodyProps.overflowX === "hidden";
             bodyOverflowHiddenY = bodyProps.overflow === "hidden" || bodyProps.overflowY === "hidden";
             bodyPositioned = bodyProps.position === "absolute" || bodyProps.position === "relative";
         }
 
-        props = getCss( isWindow ? elem.document.documentElement : elem, overflowPropNames, { toLowerCase: true } );
+        props = getCss( isWindow ? documentElement : elem, overflowPropNames, { toLowerCase: true } );
 
         overflowScrollX = props.overflowX === "scroll" || ( ! props.overflowX && props.overflow === "scroll" );
         overflowScrollY = props.overflowY === "scroll" || ( ! props.overflowY && props.overflow === "scroll" );
@@ -276,14 +280,14 @@
 
         if ( isWindow ) {
 
-            $document = $( document );
-            documentElement = elem.document.documentElement;
             if ( queryHorizontal ) horizontal = overflowScrollX || ( overflowAutoX || overflowVisibleX ) && documentElement.clientWidth < $document.width();
             if ( queryVertical ) vertical = overflowScrollY || ( overflowAutoY || overflowVisibleY ) &&  documentElement.clientHeight < $document.height();
 
             // Handle body with overflow: hidden
             if ( bodyOverflowHiddenX || bodyOverflowHiddenY ) bodyBoxProps = getCss( body, [ "borderTopWidth", "borderLeftWidth", "marginTop", "marginLeft" ] );
+
             if ( bodyOverflowHiddenX ) {
+
                 if ( bodyPositioned ){
                     // If the body is positioned, it is the offset parent of all content, hence every overflow is hidden.
                     // Only overflow: scroll on the html element can make scroll bars appear (and they won't have anything
@@ -293,33 +297,38 @@
                     bodyScrollWidth = body.scrollWidth;
                     ddeScrollWidth = documentElement.scrollWidth;
 
-                    // cond 1: Chrome, iOS, Opera; cond2: FF, IE (tested with IE11); can be tested/investigated with http://jsbin.com/vofuba/9/
+                    // Testing if the document is smaller or equal to the body (it could be larger, e.g. because of
+                    // positioned content). If so, the document does not cause scroll bars. Only overflow:scroll would
+                    // make them appear.
+                    //
+                    // Condition 1: Chrome, iOS, Opera; condition 2: FF, IE (tested with IE11)
+                    // Browser behaviour can be tested/investigated with http://jsbin.com/vofuba/9/
                     if ( bodyScrollWidth === ddeScrollWidth || bodyScrollWidth + bodyBoxProps.borderLeft + bodyBoxProps.marginLeft === ddeScrollWidth ) {
-                        // Document is not enlarged beyond body size (e.g. by positioned content), ie no scroll bar
                         horizontal = overflowScrollX;
                     }
                 }
+
             }
+
             if ( bodyOverflowHiddenY ) {
+
                 if ( bodyPositioned ){
-                    // See above.
+                    // See above, bodyOverflowHiddenX branch.
                     vertical = overflowScrollY;
                 } else {
-
                     bodyScrollHeight = body.scrollHeight;
                     ddeScrollHeight = documentElement.scrollHeight;
 
-                    // See above for condition logic.
+                    // See above, bodyOverflowHiddenX branch..
                     if ( bodyScrollHeight === ddeScrollHeight || bodyScrollHeight + bodyBoxProps.borderTop + bodyBoxProps.marginTop === ddeScrollHeight ) {
-                        // Document is not enlarged beyond body size (e.g. by positioned content), ie no scroll bar
                         vertical = overflowScrollY;
                     }
-
                 }
             }
 
         } else {
 
+            // Scroll bars on an HTML element
             scrollWidth = elem.scrollWidth;
             scrollHeight = elem.scrollHeight;
 
@@ -374,7 +383,6 @@
      */
     function effectiveScrollbarWith ( $elem, axis ) {
 
-        // todo clean up
         var queryHorizontal, queryVertical, queryBoth, elemHasScrollbar, horizontal, vertical,
             globalWidth = browserScrollbarWidth();
 
@@ -387,7 +395,7 @@
         if ( axis !== "horizontal" && axis !== "vertical" && axis !== "both" ) throw new Error( "Invalid parameter value: axis = " + axis );
         if ( ! $elem.length ) throw new Error( 'Invalid set: empty jQuery object' );
 
-        // Bail out early, without an $elem.hasScrollbar() query, for simple cases.
+        // Bail out early, without an $elem.hasScrollbar() query, if scroll bars don't take up any space.
         if ( globalWidth === 0 ) return queryBoth ? { horizontal: 0, vertical: 0 } : 0;
 
         elemHasScrollbar = queryBoth ? hasScrollbar( $elem ) : queryHorizontal ? { horizontal: hasScrollbar( $elem, "horizontal" ) } : { vertical: hasScrollbar( $elem, "vertical" ) };
