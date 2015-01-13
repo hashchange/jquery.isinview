@@ -405,16 +405,16 @@
                     expect( f.$container.hasScrollbar() ).to.eql( { horizontal: false, vertical: true } );
                 } );
 
-                it( 'when the content is exactly as high as the visible area inside the element, and the element has bottom padding', function () {
-                    // ... and nothing else.
-                    //
-                    // The bottom padding is pushed down by the content.
-                    var padding = 1;
-                    f.$container.bottomPadding( padding );
-                    $content.height( containerHeight + padding );
-
-                    expect( f.$container.hasScrollbar() ).to.eql( { horizontal: false, vertical: true } );
-                } );
+                // Removed tests:
+                //
+                // - when the content is exactly as high as the visible area inside the element, and the element has bottom padding
+                // - when the content is exactly as high as the visible area inside the element, and the element has bottom padding (box-sizing: border-box)
+                //
+                // These tests presume that the bottom padding is pushed down by the content, causing scroll bars to
+                // appear. But the actual behaviour is inconsistent across browsers. Padding is pushed down in Chrome
+                // and Safari. In FF, IE, and Opera, the padding is squashed, and scroll bars don't appear.
+                //
+                // See http://jsbin.com/lokavo/9/ for an illustration.
 
                 it( 'when the content is exactly as high as the visible area inside the element, and the element has top padding (box-sizing: border-box)', function () {
                     // ... and nothing else.
@@ -424,21 +424,6 @@
                     f.applyBorderBox();
                     f.$container
                         .topPadding( padding )
-                        .contentBox( containerWidth, containerHeight );
-
-                    $content.height( containerHeight + padding );
-
-                    expect( f.$container.hasScrollbar() ).to.eql( { horizontal: false, vertical: true } );
-                } );
-
-                it( 'when the content is exactly as high as the visible area inside the element, and the element has bottom padding (box-sizing: border-box)', function () {
-                    // ... and nothing else.
-                    //
-                    // The bottom padding is pushed down by the content.
-                    var padding = 1;
-                    f.applyBorderBox();
-                    f.$container
-                        .bottomPadding( padding )
                         .contentBox( containerWidth, containerHeight );
 
                     $content.height( containerHeight + padding );
@@ -638,7 +623,7 @@
                 it( 'when the content is exactly as wide as the visible area inside the element, and the element has right padding which the content extends into', function () {
                     // ... and no other padding, borders, margins are involved.
                     //
-                    // The right padding is squashed, not pushed out. A scroll bar does _not_ appear in this case. See http://jsbin.com/lokavo/7/ for an example.
+                    // The right padding is squashed, not pushed out. A scroll bar does _not_ appear in this case. See http://jsbin.com/lokavo/9/ for an example.
                     var padding = 1;
                     f.$container.rightPadding( padding );
                     $content.width( containerWidth + padding );
@@ -649,7 +634,7 @@
                 it( 'when the content is exactly as wide as the visible area inside the element, and the element has right padding which the content extends into (box-sizing: border-box)', function () {
                     // ... and no other padding, borders, margins are involved.
                     //
-                    // The right padding is squashed, not pushed out. A scroll bar does _not_ appear in this case. See http://jsbin.com/lokavo/7/ for an example.
+                    // The right padding is squashed, not pushed out. A scroll bar does _not_ appear in this case. See http://jsbin.com/lokavo/9/ for an example.
                     var padding = 1;
                     f.applyBorderBox();
                     f.$container

@@ -188,50 +188,16 @@
                     } );
                 }
 
-                if ( setupType !== "overflowHidden" && $.scrollbarWidth() > 0 ) {
-
-                    describe( 'When the element is inside the container and extends into the padding vertically, and is obscured by the resulting vertical scroll bar', function () {
-                        // The element must be wide enough to actually end up under the vertical scroll bar. This is
-                        // guaranteed if it extends fully into the right padding of the container. This padding is
-                        // squashed, so the intrusion into the padding does not, in itself, make a horizontal scroll bar
-                        // appear. (But the element being covered by the scroll bar does.)
-                        //
-                        // This test is just about the vertical padding (and not the implications of a horizontal scroll
-                        // bar). So we let the element extend into the bottom padding just a tiny bit, and make that
-                        // padding larger than a scroll bar.
-                        //
-                        // When the vertical scroll bar shows up and obscures part of the element, that makes a secondary,
-                        // horizontal scroll bar appear. Because of the setting described above, the horizontal scroll bar
-                        // does not obscure the element.
-                        //
-                        // See http://jsbin.com/lokavo/7/ for an example.
-
-                        beforeEach( function () {
-                            f.$el.contentBox( containerInnerWidth + padding, containerInnerHeight + 1 );
-                        } );
-
-                        it( 'it is not in view', function () {
-                            expect( f.$el.isInView( f.$container ) ).to.be.false;
-                        } );
-
-                        it( 'it is in partial view', function () {
-                            expect( f.$el.isInView( f.$container, { partially: true } ) ).to.be.true;
-                        } );
-
-                        it( 'its content area is not in view', function () {
-                            expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.be.false;
-                        } );
-
-                        it( 'its content area is in partial view', function () {
-                            expect( f.$el.isInView( f.$container, {
-                                partially: true,
-                                box: "content-box"
-                            } ) ).to.be.true;
-                        } );
-
-                    } );
-
-                }
+                // Removed test (for setupType !== "overflowHidden" && $.scrollbarWidth() > 0):
+                //
+                // - When the element is inside the container and extends into the padding vertically, and is
+                //   obscured by the resulting vertical scroll bar: it is not in view (nor in partial view)
+                //
+                // This test presumes that the bottom padding is pushed down by the content, causing scroll bars to
+                // appear. But the actual behaviour is inconsistent across browsers. Padding is pushed down in
+                // Chrome and Safari. In FF, IE, and Opera, the padding is squashed, and scroll bars don't appear.
+                //
+                // See http://jsbin.com/lokavo/9/ for an illustration.
 
                 if ( setupType !== "overflowScroll" ) {
 
@@ -239,7 +205,7 @@
                         // The horizontal right padding is squashed, not pushed out. A scroll bar does _not_ appear in
                         // this case.
                         //
-                        // Again, see http://jsbin.com/lokavo/7/ for an example.
+                        // Again, see http://jsbin.com/lokavo/9/ for an example.
 
                         beforeEach( function () {
                             f.$el.contentBox( containerInnerWidth + padding, containerInnerHeight );
