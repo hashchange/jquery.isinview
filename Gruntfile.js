@@ -72,7 +72,7 @@ module.exports = function (grunt) {
     karma: {
       options: {
         configFile: 'karma.conf.js',
-        browsers: ['PhantomJS'],
+        browsers: ['Chrome'],
         port: KARMA_PORT
       },
       test: {

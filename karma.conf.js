@@ -72,14 +72,14 @@ module.exports = function(config) {
     // - Chrome
     // - ChromeCanary
     // - Firefox
-    // - Opera (has to be installed with `npm install karma-opera-launcher`)
-    // - Safari (only Mac; has to be installed with `npm install karma-safari-launcher`)
+    // - Opera
+    // - Safari
     // - PhantomJS
     // - SlimerJS
-    // - IE (only Windows; has to be installed with `npm install karma-ie-launcher`)
+    // - IE (Windows only)
     //
     // ATTN Interactive debugging in PhpStorm/WebStorm doesn't work with PhantomJS. Use Firefox or Chrome instead.
-    browsers: ['SlimerJS'],
+    browsers: ['Chrome'],
 
 
     // If browser does not capture in given timeout [ms], kill it

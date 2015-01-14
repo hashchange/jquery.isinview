@@ -850,8 +850,9 @@
 
         describe( 'Child window', function () {
 
-            // Increase timeout to allow ample time for child window creation
-            this.timeout( 4000 );
+            // Increase timeout to allow ample time for child window creation. Make it long enough to dismiss modal
+            // warning dialogs in iOS, too, which must be done manually.
+            this.timeout( 12000 );
 
             beforeEach( function () {
                 f = Setup.create( "childWindow", f );
