@@ -303,7 +303,8 @@
                     // positioned content). If so, the document does not cause scroll bars. Only overflow:scroll would
                     // make them appear.
                     //
-                    // Condition 1: Chrome, iOS, Opera; condition 2: FF, IE (tested with IE11)
+                    // Condition 1 captures: Chrome, Chrome on Android, Safari on OS X, iOS, Opera;
+                    // Condition 2 captures: FF, IE9+
                     // Browser behaviour can be tested/investigated with http://jsbin.com/vofuba/9/
                     if ( bodyScrollWidth === ddeScrollWidth || bodyScrollWidth + bodyBoxProps.borderLeft + bodyBoxProps.marginLeft === ddeScrollWidth ) {
                         horizontal = overflowScrollX;
@@ -838,7 +839,7 @@
     function getCss ( elem, properties, opts ) {
         var i, length, name,
             props = {},
-            computedStyles = window.getComputedStyle( elem );
+            computedStyles = ( elem.ownerDocument.defaultView || elem.ownerDocument.parentWindow ).getComputedStyle( elem, null );
 
         if ( ! $.isArray( properties ) ) properties = [ properties ];
         length = properties.length;

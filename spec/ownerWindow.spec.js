@@ -7,7 +7,13 @@
         var $testElem;
 
         afterEach( function () {
-            if ( $testElem ) $testElem.remove();
+            try {
+                if ( $testElem ) $testElem.remove();
+            } catch ( e ) {
+                // The test element has been created in a child window which is in the process of closing. This error
+                // happens in IE only. No action required.
+            }
+
         } );
 
         describe( 'In the global window, ownerWindow', function () {
@@ -110,6 +116,9 @@
         describe( 'In a child window, ownerWindow', function () {
 
             var childWindow;
+
+            // Increase timeout to allow ample time for child window creation
+            this.timeout( 4000 );
 
             before( function () {
                 childWindow = createChildWindow();

@@ -188,7 +188,11 @@ $.extend( DOMFixture.prototype, {
      */
     shutdown: function () {
         this.cleanDom();
-        if ( this.childWindow ) this.childWindow.close();
+        if ( this.childWindow ) {
+            this.childWindow.close();
+            delete this.childWindow;
+            delete this.childWindowReady;
+        }
     }
 
 } );
@@ -422,13 +426,17 @@ $.extend( Setup.prototype, {
  * @param {number}     [opts.windowWidth=200]                  width of iframe and child windows, required min-width of global window
  * @param {number}     [opts.windowHeight=200]                 height of iframe and child windows, required min-height of global window
  * @param {boolean}    [opts.createEl=true]                    if false, the stage is created empty
- * @param {boolean}    [opts.hidePreexistingBodyContent=true]  if set to false, the body content in the _global_ window
- *                                                             is not hidden during the test (default: is hidden)
+ * @param {boolean}    [opts.hidePreexistingBodyContent]       if set to false, the body content in the _global_ window
+ *                                                             is not hidden during the test (default: is hidden unless
+ *                                                             the test type is "child window")
  *
  * @returns {DOMFixture}
  */
 Setup.create = function ( type, fixture, opts ) {
     var setup;
+
+    opts || ( opts = {} );
+    if ( typeof opts.hidePreexistingBodyContent === "undefined" ) opts.hidePreexistingBodyContent = type !== "childWindow";
 
     fixture || ( fixture = new DOMFixture() );
 

@@ -848,6 +848,9 @@
 
         describe( 'Child window', function () {
 
+            // Increase timeout to allow ample time for child window creation
+            this.timeout( 4000 );
+
             beforeEach( function () {
                 f = Setup.create( "childWindow", f );
                 return f.ready;

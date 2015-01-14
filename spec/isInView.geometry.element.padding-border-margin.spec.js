@@ -7,6 +7,9 @@
         /** @type {DOMFixture}  populated by Setup.create() */
         var f;
 
+        // Increase timeout to allow ample time for child window creation
+        this.timeout( 4000 );
+
         withData( {
 
             "the global window as container": "window",

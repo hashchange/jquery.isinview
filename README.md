@@ -37,6 +37,8 @@ Your test and build environment is ready now. If you want to test against specif
 
 ### Running tests, creating a new build
 
+Some tests are executed in a child window (aka pop-up window). Please _disable the pop-up blocker of the browser_ for the domain the tests are run under (usually localhost), or they will fail.
+
 The test tool chain: [Grunt][] (task runner), [Karma][] (test runner), [Mocha][] (test framework), [Chai][] (assertion library), [Sinon][] (mocking framework). The good news: you don't need to worry about any of this.
 
 A handful of commands manage everything for you:
