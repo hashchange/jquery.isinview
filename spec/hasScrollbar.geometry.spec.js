@@ -249,6 +249,8 @@
                 } );
 
                 it( 'when the body content extends beyond the viewport horizontally and vertically, but the body is set to overflow: hidden', function () {
+                    // NB Opera: This test fails (Opera 12.17) because of what looks like a bug in Opera. Is allowed to
+                    // fail in Opera (and Opera only!), then.
                     f.$el.contentBox( viewportWidth + 1, viewportHeight + 1 );
                     $body.overflow( "hidden" );
                     expect( $window.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
