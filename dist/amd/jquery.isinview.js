@@ -1,4 +1,4 @@
-// jQuery.isInView, v0.2.0
+// jQuery.isInView, v0.3.0
 // Copyright (c)2015 Michael Heim, Zeilenwechsel.de
 // Distributed under MIT license
 // http://github.com/hashchange/jquery.isinview
@@ -310,7 +310,7 @@
                 if ( queryVertical ) vertical = overflowScrollY || ( overflowAutoY || overflowVisibleY ) &&  documentElement.clientHeight < $document.height();
     
                 // Handle body with overflow: hidden
-                if ( bodyOverflowHiddenX || bodyOverflowHiddenY ) bodyBoxProps = getCss( body, [ "borderTopWidth", "borderLeftWidth", "marginTop", "marginLeft" ] );
+                if ( bodyOverflowHiddenX || bodyOverflowHiddenY ) bodyBoxProps = getCss( body, [ "borderTopWidth", "borderLeftWidth", "marginTop", "marginLeft" ], { toFloat: true } );
     
                 if ( bodyOverflowHiddenX ) {
     
@@ -327,9 +327,10 @@
                         // positioned content). If so, the document does not cause scroll bars. Only overflow:scroll would
                         // make them appear.
                         //
-                        // Condition 1: Chrome, iOS, Opera; condition 2: FF, IE (tested with IE11)
+                        // Condition 1 captures: Chrome, Chrome on Android, Safari on OS X, iOS, Opera;
+                        // Condition 2 captures: FF, IE9+
                         // Browser behaviour can be tested/investigated with http://jsbin.com/vofuba/9/
-                        if ( bodyScrollWidth === ddeScrollWidth || bodyScrollWidth + bodyBoxProps.borderLeft + bodyBoxProps.marginLeft === ddeScrollWidth ) {
+                        if ( bodyScrollWidth === ddeScrollWidth || bodyScrollWidth + bodyBoxProps.borderLeftWidth + bodyBoxProps.marginLeft === ddeScrollWidth ) {
                             horizontal = overflowScrollX;
                         }
                     }
@@ -346,7 +347,7 @@
                         ddeScrollHeight = documentElement.scrollHeight;
     
                         // See above, bodyOverflowHiddenX branch..
-                        if ( bodyScrollHeight === ddeScrollHeight || bodyScrollHeight + bodyBoxProps.borderTop + bodyBoxProps.marginTop === ddeScrollHeight ) {
+                        if ( bodyScrollHeight === ddeScrollHeight || bodyScrollHeight + bodyBoxProps.borderTopWidth + bodyBoxProps.marginTop === ddeScrollHeight ) {
                             vertical = overflowScrollY;
                         }
                     }
@@ -692,9 +693,7 @@
                 props = getCss( elem, [
                     "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth",
                     "paddingTop", "paddingRight", "paddingBottom", "paddingLeft"
-                ] );
-    
-            props = toFloat( props );
+                ], { toFloat: true } );
     
             return {
                 top: rect.top + props.paddingTop + props.borderTopWidth,
@@ -856,13 +855,16 @@
          * @param {string|string[]} properties
          * @param {Object}          [opts]
          * @param {boolean}         [opts.toLowerCase=false]  ensures return values in lower case
+         * @param {boolean}         [opts.toFloat=false]      converts return values to numbers, using parseFloat
          *
          * @returns {Object}        property names and their values
          */
         function getCss ( elem, properties, opts ) {
             var i, length, name,
                 props = {},
-                computedStyles = window.getComputedStyle( elem );
+                computedStyles = ( elem.ownerDocument.defaultView || elem.ownerDocument.parentWindow ).getComputedStyle( elem, null );
+    
+            opts || ( opts = {} );
     
             if ( ! $.isArray( properties ) ) properties = [ properties ];
             length = properties.length;
@@ -870,7 +872,8 @@
             for ( i = 0; i < length; i++ ) {
                 name = properties[i];
                 props[name] = $.css( elem, name, false, computedStyles );
-                if ( opts && opts.toLowerCase && props[name] && props[name].toLowerCase ) props[name] = props[name].toLowerCase();
+                if ( opts.toLowerCase && props[name] && props[name].toLowerCase ) props[name] = props[name].toLowerCase();
+                if ( opts.toFloat ) props[name] = parseFloat( props[name] );
             }
     
             return props;
