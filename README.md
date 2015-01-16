@@ -37,7 +37,15 @@ Your test and build environment is ready now. If you want to test against specif
 
 ### Running tests, creating a new build
 
+#### Considerations for testing
+
 Some tests are executed in a child window (aka pop-up window). Please _disable the pop-up blocker of the browser_ for the domain the tests are run under (usually localhost), or they will fail.
+
+To run the tests on on remote clients (mobile devices), start a web server with `grunt interactive` and visit `http://[your-host-ip]:9400/web-mocha/` with the client browser. Running the tests in the browser like this takes a _long_ time, so it makes sense to disable the power-save/sleep/auto-lock timeout on the mobile device. 
+
+Further, on iOS, you need to guide the tests along. Even with the pop-up blocker disabled, iOS displays notifications each time a child window is opened by a test, and you need to dismiss each notification manually. You have about a minute to hit OK before the related part of the test suite times out. These notifications show up multiple times, so keep an eye on your device until all tests are done.
+
+#### Tool chain and commands
 
 The test tool chain: [Grunt][] (task runner), [Karma][] (test runner), [Mocha][] (test framework), [Chai][] (assertion library), [Sinon][] (mocking framework). The good news: you don't need to worry about any of this.
 
@@ -52,7 +60,7 @@ A handful of commands manage everything for you:
 
 Finally, if need be, you can set up a quick demo page to play with the code. First, edit the files in the `demo` directory. Then display `demo/index.html`, live-reloading your changes to the code or the page, with `grunt demo`. Libraries needed for the demo/playground should go into the Bower dev dependencies, in the project-wide `bower.json`, or else be managed by the dedicated `bower.json` in the demo directory.
 
-_The `grunt interactive` and `grunt demo` commands spin up a web server, opening up the **whole project** to access via http. By default, that access is restricted to localhost. You can relax the restriction in `Gruntfile.js`, but be aware of the security implications._
+_The `grunt interactive` and `grunt demo` commands spin up a web server, opening up the **whole project** to access via http._ So please be aware of the security implications. You can restrict that access to localhost in `Gruntfile.js` if you just use browsers on your machine.
 
 ### Changing the tool chain configuration
 
