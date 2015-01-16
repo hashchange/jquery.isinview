@@ -9,7 +9,7 @@
 
         // Increase timeout to allow ample time for child window creation. Make it long enough to dismiss modal warning
         // dialogs in iOS, too, which must be done manually.
-        this.timeout( 12000 );
+        this.timeout( 64000 );
 
         withData( {
 
@@ -25,7 +25,8 @@
 
             var containerFullWidth, containerFullHeight,
                 containerInnerWidthUpToScrollbar,
-                containerInnerHeightUpToScrollbar;
+                containerInnerHeightUpToScrollbar,
+                isIframeInIOS;
 
             beforeEach( function () {
 
@@ -38,6 +39,10 @@
                     // Inner width and height when a scroll bar appears in the container (excluding the scrollbar)
                     containerInnerWidthUpToScrollbar = f.$container.width() - $.scrollbarWidth();
                     containerInnerHeightUpToScrollbar = f.$container.height() - $.scrollbarWidth();
+
+                    // Flag if the container is an iframe, and the tests run in iOS. Iframes behave differently there -
+                    // in particular, they expand downwards and to the right up to the size of the iframe document.
+                    isIframeInIOS = setupType === "iframe" && f.iframeExpands;
                 } );
 
             } );
@@ -607,16 +612,16 @@
                                 .relPositionAt( containerFullHeight - 3, 0 );
                         } );
 
-                        it( 'it is not in view', function () {
-                            expect( f.$el.isInView( f.$container ) ).to.be.false;
+                        it( 'it is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container ) ).to.equal( isIframeInIOS );
                         } );
 
                         it( 'it is in partial view', function () {
                             expect( f.$el.isInView( f.$container, { partially: true } ) ).to.be.true;
                         } );
 
-                        it( 'its content area is not in view', function () {
-                            expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.be.false;
+                        it( 'its content area is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.equal( isIframeInIOS );
                         } );
 
                         it( 'its content area is in partial view', function () {
@@ -635,20 +640,20 @@
                                 .relPositionAt( containerFullHeight - 2, 0 );
                         } );
 
-                        it( 'it is not in view', function () {
-                            expect( f.$el.isInView( f.$container ) ).to.be.false;
+                        it( 'it is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container ) ).to.equal( isIframeInIOS );
                         } );
 
                         it( 'it is in partial view', function () {
                             expect( f.$el.isInView( f.$container, { partially: true } ) ).to.be.true;
                         } );
 
-                        it( 'its content area is not in view', function () {
-                            expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.be.false;
+                        it( 'its content area is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.equal( isIframeInIOS );
                         } );
 
-                        it( 'its content area is not in partial view', function () {
-                            expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.be.false;
+                        it( 'its content area is not in partial view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.equal( isIframeInIOS );
                         } );
 
                     } );
@@ -663,20 +668,20 @@
                                 .relPositionAt( containerFullHeight - 1, 0 );
                         } );
 
-                        it( 'it is not in view', function () {
-                            expect( f.$el.isInView( f.$container ) ).to.be.false;
+                        it( 'it is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container ) ).to.equal( isIframeInIOS );
                         } );
 
                         it( 'it is in partial view', function () {
                             expect( f.$el.isInView( f.$container, { partially: true } ) ).to.be.true;
                         } );
 
-                        it( 'its content area is not in view', function () {
-                            expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.be.false;
+                        it( 'its content area is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.equal( isIframeInIOS );
                         } );
 
-                        it( 'its content area is not in partial view', function () {
-                            expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.be.false;
+                        it( 'its content area is not in partial view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.equal( isIframeInIOS );
                         } );
 
                     } );
@@ -691,20 +696,20 @@
                                 .relPositionAt( containerFullHeight - 1, 0 );
                         } );
 
-                        it( 'it is not in view', function () {
-                            expect( f.$el.isInView( f.$container ) ).to.be.false;
+                        it( 'it is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container ) ).to.equal( isIframeInIOS );
                         } );
 
                         it( 'it is in partial view', function () {
                             expect( f.$el.isInView( f.$container, { partially: true } ) ).to.be.true;
                         } );
 
-                        it( 'its content area is not in view', function () {
-                            expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.be.false;
+                        it( 'its content area is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.equal( isIframeInIOS );
                         } );
 
-                        it( 'its content area is not in partial view', function () {
-                            expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.be.false;
+                        it( 'its content area is not in partial view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.equal( isIframeInIOS );
                         } );
 
                     } );
@@ -721,20 +726,20 @@
                             .relPositionAt( containerFullHeight, 0 );
                     } );
 
-                    it( 'it is not in view', function () {
-                        expect( f.$el.isInView( f.$container ) ).to.be.false;
+                    it( 'it is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                        expect( f.$el.isInView( f.$container ) ).to.equal( isIframeInIOS );
                     } );
 
-                    it( 'it is not in partial view', function () {
-                        expect( f.$el.isInView( f.$container, { partially: true } ) ).to.be.false;
+                    it( 'it is not in partial view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                        expect( f.$el.isInView( f.$container, { partially: true } ) ).to.equal( isIframeInIOS );
                     } );
 
-                    it( 'its content area is not in view', function () {
-                        expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.be.false;
+                    it( 'its content area is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                        expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.equal( isIframeInIOS );
                     } );
 
-                    it( 'its content area is not in partial view', function () {
-                        expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.be.false;
+                    it( 'its content area is not in partial view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                        expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.equal( isIframeInIOS );
                     } );
 
                 } );
@@ -749,20 +754,20 @@
                             .relPositionAt( containerFullHeight, 0 );
                     } );
 
-                    it( 'it is not in view', function () {
-                        expect( f.$el.isInView( f.$container ) ).to.be.false;
+                    it( 'it is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                        expect( f.$el.isInView( f.$container ) ).to.equal( isIframeInIOS );
                     } );
 
-                    it( 'it is not in partial view', function () {
-                        expect( f.$el.isInView( f.$container, { partially: true } ) ).to.be.false;
+                    it( 'it is not in partial view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                        expect( f.$el.isInView( f.$container, { partially: true } ) ).to.equal( isIframeInIOS );
                     } );
 
-                    it( 'its content area is not in view', function () {
-                        expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.be.false;
+                    it( 'its content area is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                        expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.equal( isIframeInIOS );
                     } );
 
-                    it( 'its content area is not in partial view', function () {
-                        expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.be.false;
+                    it( 'its content area is not in partial view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                        expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.equal( isIframeInIOS );
                     } );
 
                 } );
@@ -1127,16 +1132,16 @@
                                 .relPositionAt( 0, containerFullWidth - 3 );
                         } );
 
-                        it( 'it is not in view', function () {
-                            expect( f.$el.isInView( f.$container ) ).to.be.false;
+                        it( 'it is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container ) ).to.equal( isIframeInIOS );
                         } );
 
                         it( 'it is in partial view', function () {
                             expect( f.$el.isInView( f.$container, { partially: true } ) ).to.be.true;
                         } );
 
-                        it( 'its content area is not in view', function () {
-                            expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.be.false;
+                        it( 'its content area is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.equal( isIframeInIOS );
                         } );
 
                         it( 'its content area is in partial view', function () {
@@ -1155,20 +1160,20 @@
                                 .relPositionAt( 0, containerFullWidth - 2 );
                         } );
 
-                        it( 'it is not in view', function () {
-                            expect( f.$el.isInView( f.$container ) ).to.be.false;
+                        it( 'it is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container ) ).to.equal( isIframeInIOS );
                         } );
 
                         it( 'it is in partial view', function () {
                             expect( f.$el.isInView( f.$container, { partially: true } ) ).to.be.true;
                         } );
 
-                        it( 'its content area is not in view', function () {
-                            expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.be.false;
+                        it( 'its content area is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.equal( isIframeInIOS );
                         } );
 
-                        it( 'its content area is not in partial view', function () {
-                            expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.be.false;
+                        it( 'its content area is not in partial view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.equal( isIframeInIOS );
                         } );
 
                     } );
@@ -1183,20 +1188,20 @@
                                 .relPositionAt( 0, containerFullWidth - 1 );
                         } );
 
-                        it( 'it is not in view', function () {
-                            expect( f.$el.isInView( f.$container ) ).to.be.false;
+                        it( 'it is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container ) ).to.equal( isIframeInIOS );
                         } );
 
                         it( 'it is in partial view', function () {
                             expect( f.$el.isInView( f.$container, { partially: true } ) ).to.be.true;
                         } );
 
-                        it( 'its content area is not in view', function () {
-                            expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.be.false;
+                        it( 'its content area is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.equal( isIframeInIOS );
                         } );
 
-                        it( 'its content area is not in partial view', function () {
-                            expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.be.false;
+                        it( 'its content area is not in partial view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.equal( isIframeInIOS );
                         } );
 
                     } );
@@ -1211,20 +1216,20 @@
                                 .relPositionAt( 0, containerFullWidth - 1 );
                         } );
 
-                        it( 'it is not in view', function () {
-                            expect( f.$el.isInView( f.$container ) ).to.be.false;
+                        it( 'it is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container ) ).to.equal( isIframeInIOS );
                         } );
 
                         it( 'it is in partial view', function () {
                             expect( f.$el.isInView( f.$container, { partially: true } ) ).to.be.true;
                         } );
 
-                        it( 'its content area is not in view', function () {
-                            expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.be.false;
+                        it( 'its content area is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.equal( isIframeInIOS );
                         } );
 
-                        it( 'its content area is not in partial view', function () {
-                            expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.be.false;
+                        it( 'its content area is not in partial view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                            expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.equal( isIframeInIOS );
                         } );
 
                     } );
@@ -1241,20 +1246,20 @@
                             .relPositionAt( 0, containerFullWidth );
                     } );
 
-                    it( 'it is not in view', function () {
-                        expect( f.$el.isInView( f.$container ) ).to.be.false;
+                    it( 'it is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                        expect( f.$el.isInView( f.$container ) ).to.equal( isIframeInIOS );
                     } );
 
-                    it( 'it is not in partial view', function () {
-                        expect( f.$el.isInView( f.$container, { partially: true } ) ).to.be.false;
+                    it( 'it is not in partial view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                        expect( f.$el.isInView( f.$container, { partially: true } ) ).to.equal( isIframeInIOS );
                     } );
 
-                    it( 'its content area is not in view', function () {
-                        expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.be.false;
+                    it( 'its content area is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                        expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.equal( isIframeInIOS );
                     } );
 
-                    it( 'its content area is not in partial view', function () {
-                        expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.be.false;
+                    it( 'its content area is not in partial view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                        expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.equal( isIframeInIOS );
                     } );
 
                 } );
@@ -1269,20 +1274,20 @@
                             .relPositionAt( 0, containerFullWidth );
                     } );
 
-                    it( 'it is not in view', function () {
-                        expect( f.$el.isInView( f.$container ) ).to.be.false;
+                    it( 'it is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                        expect( f.$el.isInView( f.$container ) ).to.equal( isIframeInIOS );
                     } );
 
-                    it( 'it is not in partial view', function () {
-                        expect( f.$el.isInView( f.$container, { partially: true } ) ).to.be.false;
+                    it( 'it is not in partial view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                        expect( f.$el.isInView( f.$container, { partially: true } ) ).to.equal( isIframeInIOS );
                     } );
 
-                    it( 'its content area is not in view', function () {
-                        expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.be.false;
+                    it( 'its content area is not in view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                        expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.equal( isIframeInIOS );
                     } );
 
-                    it( 'its content area is not in partial view', function () {
-                        expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.be.false;
+                    it( 'its content area is not in partial view' + ( setupType === "iframe" ? " (except in iOS)" : "" ), function () {
+                        expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.equal( isIframeInIOS );
                     } );
 
                 } );

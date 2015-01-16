@@ -14,7 +14,7 @@
 
         // Increase timeout to allow ample time for child window creation. Make it long enough to dismiss modal warning
         // dialogs in iOS, too, which must be done manually.
-        this.timeout( 12000 );
+        this.timeout( 64000 );
 
         before( function ( done ) {
             var childWindowReady = $.Deferred();

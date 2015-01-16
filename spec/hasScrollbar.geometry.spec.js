@@ -852,7 +852,7 @@
 
             // Increase timeout to allow ample time for child window creation. Make it long enough to dismiss modal
             // warning dialogs in iOS, too, which must be done manually.
-            this.timeout( 12000 );
+            this.timeout( 64000 );
 
             beforeEach( function () {
                 f = Setup.create( "childWindow", f );
@@ -868,27 +868,53 @@
         } );
 
         describe( 'Iframe', function () {
-            var $iframeElement, $iframeWindow;
+
+            // By default, we ensure that the global window has scroll bars and the iframe window does not. The
+            // method must detect the scroll bars in the iframe window.
+            //
+            // This is safer than the opposite scenario, where the global window has scroll bars, and the iframe
+            // does not. Not detecting scroll bars could also be the result of a general failure to detect
+            // anything in an iframe.
+            //
+            // On iOS, however, an iframe expands to the full size of its content. We can't test for scroll bars
+            // in the iframe because they will never appear. So we test the inferior scenario (scroll bars in
+            // the global window only).
+
+            var $iframeElement, $iframeWindow, $globalWindow, expected;
 
             beforeEach( function () {
                 f = Setup.create( "iframe", f );
 
                 return f.ready.done( function () {
+
                     $iframeElement = f.$container;
                     $iframeWindow = $( f.window );
-                    f.$el.contentBox( $iframeWindow.width() + 1, $iframeWindow.height() + 1 );
+                    $globalWindow = $( window );
+
+                    // f.iframeExpands is set async, hence it can't be used in 'if' statements outside of tests or hooks!
+                    if ( f.iframeExpands ) {
+                        // In iOS. Huge iframe element triggers scroll bars in the global window.
+                        $iframeElement.contentBox( $globalWindow.width() + 1, $globalWindow.height() + 1 );
+                        expected = { horizontal: false, vertical: false };
+                    } else {
+                        // Not iOS. Huge content triggers scroll bars in the iframe.
+                        f.$el.contentBox( $iframeWindow.width() + 1, $iframeWindow.height() + 1 );
+                        expected = { horizontal: true, vertical: true };
+                    }
+
                 } );
             } );
 
-            describe( 'The iframe window has scroll bars and the global window does not. It detects the scroll bars of the iframe window', function () {
+            describe( 'The state of scroll bars in the global window is the opposite of that in the iframe. $.fn.hasScrollbar() detects the state of the scroll bars in the iframe window', function () {
 
                 it( 'when called on the iframe window', function () {
-                    expect( $iframeWindow.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
+                    expect( $iframeWindow.hasScrollbar() ).to.eql( expected );
                 } );
 
                 it( 'when called on the iframe element', function () {
-                    expect( $iframeElement.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
+                    expect( $iframeElement.hasScrollbar() ).to.eql( expected );
                 } );
+
             } );
 
         } );

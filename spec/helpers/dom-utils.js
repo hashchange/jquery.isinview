@@ -182,3 +182,43 @@ function validateWindowSize ( expected, opts ) {
 
     if ( msg !== "" ) throw new Error( "The browser window does not match the expected size." + msg );
 }
+
+/**
+ * Feature-tests that an iframe expands to show its content, even if given an explicit width and height. This is the
+ * case on iOS.
+ *
+ * ATTN The result is returned async! The method returns an object (!) with the result.ready property signalling that
+ * the test is complete, and the test result stored in result.expands.
+ *
+ * For some background on expanding iframes in iOS, see
+ * http://dev.magnolia-cms.com/blog/2012/05/strategies-for-the-iframe-on-the-ipad-problem/
+ *
+ * @returns {{ready: jQuery.Deferred, expands: boolean}}
+ */
+function testIframeExpansion () {
+    var $iframe, $iframeReady, result = {};
+
+    if ( !varExists( $ ) ) throw new Error( "This method uses jQuery, but the $ variable is not available" );
+
+    result.ready = $.Deferred();
+
+    $iframe = $( "<iframe/>" ).css( {
+        width: "50px",
+        height: "50px",
+        padding: "0",
+        border: "none",
+        margin: "0"
+    } ).appendTo( "body", document );
+
+    $iframeReady = createIframeDocument( $iframe );
+    $iframeReady.done( function () {
+        var iframe = $iframe[0],
+            $iframeWindow = $( iframe.contentWindow );
+        $( iframe.contentDocument.body ).width( 100 ).height( 100 );
+        result.expands = $iframeWindow.width() > 50 || $iframeWindow.height() > 50;
+        $iframe.remove();
+        result.ready.resolve();
+    } );
+
+    return result;
+}

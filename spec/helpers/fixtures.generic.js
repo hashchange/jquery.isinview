@@ -19,6 +19,10 @@
  *                                                    and past its DOM ready event (but its custom DOM content not yet
  *                                                    set up); otherwise null
  *
+ * @property {boolean}              iframeExpands     true if the browser expands iframes to the size of their content,
+ *                                                    even if they are given an explicit width and height. This is the
+ *                                                    case on iOS. ATTN: Set only when running the "iframe" setup type!
+ *
  * @property {jQuery}               $canvas           the test area in the global window (prepended to body). Equal to
  *                                                    $stage when in the global window; contains the iframe element when
  *                                                    testing iframes ($stage is iframe body then)
@@ -306,6 +310,11 @@ $.extend( Setup.prototype, {
                 .prependTo( f.$canvas );
 
         createIframeDocument( $iframe ).done( function () {
+            // No need to re-test the iframe expansion feature if there already is a result
+            var iframeExpansionTest =
+                isUndefined( f.iframeExpands ) ?
+                testIframeExpansion() :
+                { ready: $.Deferred().resolve(), expands: f.iframeExpands };
 
             f.window = $iframe[0].contentWindow;
             f.document = $iframe[0].contentDocument;
@@ -320,7 +329,10 @@ $.extend( Setup.prototype, {
                 .contentBox( defaults.elWidth, defaults.elHeight )
                 .appendTo( f.$stage );
 
-            contentReady.resolve();
+            iframeExpansionTest.ready.done( function () {
+                f.iframeExpands = iframeExpansionTest.expands;
+                contentReady.resolve();
+            } );
 
         } );
 
