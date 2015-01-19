@@ -257,7 +257,7 @@
 
     // Test methods, for each component
     //
-    // NB Method names on the test object must be the same as values of the component checkboxes in perftest.html
+    // NB Method names on the test object must be the same as values of the component checkboxes in perftest/index.html
 
     tests.jqIsInView = function ( spec ) {
         var visibleElements,
