@@ -6,93 +6,27 @@
         $root = $( window );
 
     /**
-     * Checks if an element has a scroll bar. The axis can be specified, both axes are checked by default.
-     *
-     * The return type depends on whether one or both axes are queried. For a single axis, the method returns a boolean.
-     * For both axes, it returns an object with the state of each individual axis, e.g. `{ vertical: true, horizontal:
-     * false }`.
-     *
-     * The method
-     *
-     * - only acts on the first element of a jQuery set
-     * - returns undefined if the set is empty
-     * - looks for window scroll bars if called on a window, document, or document element (html tag)
-     * - looks for scroll bars on the content window of an iframe if called on the iframe element
-     * - looks for scroll bars on the body tag itself if called on the body. Usually, there aren't any - if you want to
-     *   find out about window scroll bars, don't call the method on the body.
-     *
-     * Note that the method checks for the presence of a scroll bar and nothing else. It doesn't mean that the scroll
-     * bar actually scrolls, or takes up any space:
-     *
-     * - It always returns true for overflow:scroll, even if the element doesn't contain content which needs to be
-     *   scrolled.
-     * - It returns true if there is a scroll bar of width 0, which is the standard behaviour of Safari on the Mac and
-     *   on iOS.
-     *
      * @param   {string} [axis="both"]  values "horizontal", "vertical", "both"
-     * @returns {boolean|Object}
+     * @returns {boolean|Object|undefined}
      */
     $.fn.hasScrollbar = function ( axis ) {
         return hasScrollbar( this, axis );
     };
 
     /**
-     * Returns the effective size (width) of a scrollbar on the element, in pixels, as a number without unit. The axis
-     * can be specified, both axes are queried by default.
-     *
-     * The return type depends on whether one or both axes are queried. For a single axis, the method returns a number.
-     * For both axes, it returns an object with the size of each individual scroll bar, e.g. `{ vertical: 28,
-     * horizontal: 0 }`.
-     *
-     * For a given axis, the method returns the global value of $.scrollbarWidth() if there is a scroll bar, and 0 if
-     * there isn't. It does not handle custom scroll bars. The default scroll bars of the browser are expected to
-     * appear.
-     *
-     * Only acts on the first element of a jQuery set. Throws an error if the set is empty.
-     *
-     * Note that the method does not allow you to infer the presence of a scroll bar, or whether it actually scrolls:
-     *
-     * - It always returns the default width for overflow:scroll, even if the element doesn't contain content which
-     *   needs to be scrolled.
-     * - It returns 0 if there is no scroll bar, or if there is a scroll of width 0, which is the standard behaviour of
-     *   Safari on the Mac and on iOS.
-     *
-     * For the type of jQuery sets the method can be called on, and how they are handled, see $.fn.hasScrollbar.
-     *
      * @param   {string} [axis="both"]  values "horizontal", "vertical", "both"
-     * @returns {number|Object}
+     * @returns {number|Object|undefined}
      */
     $.fn.scrollbarWidth = function ( axis ) {
         return effectiveScrollbarWith( this, axis );
     };
 
     /**
-     * Returns the size (width) of the scrollbar for a given browser, in pixels, as a number without unit.
-     *
-     * If the browser doesn't provide permanent scrollbars, and instead shows them as a temporary overlay while actually
-     * scrolling the page, scrollbar size is reported as 0. That is the default behaviour in mobile browsers, and in
-     * current versions of OS X.
-     *
-     * Adapted from Ben Alman's scrollbarWidth plugin. See
-     * - http://benalman.com/projects/jquery-misc-plugins/#scrollbarwidth
-     * - http://jsbin.com/zeliy/1
-     *
      * @returns {number}
      */
     $.scrollbarWidth = browserScrollbarWidth;
 
     /**
-     * Returns the window containing the the first element in the set of matched elements.
-     *
-     * If the element is a window, `ownerWindow` returns the window itself. If there aren't any matched elements,
-     * `ownerWindow` returns undefined.
-     *
-     * If the element is _inside_ an iframe, `ownerWindow` returns the window representing the iframe. (Please keep in
-     * mind that selecting elements inside an iframe is subject to cross-domain security restrictions, and may not
-     * work.)
-     *
-     * However, if the element _is_ the frame or iframe, `ownerWindow` returns the window containing the (i)frame.
-     *
      * @returns {Window|undefined}
      */
     $.fn.ownerWindow = function () {
@@ -100,15 +34,6 @@
     };
 
     /**
-     * Acts as a filter and returns the elements in the set which are in view inside the window, or inside another
-     * container.
-     *
-     * The container can be a window, iframe, scrollable element (overflow:scroll or overflow:auto), an element with
-     * overflow:hidden, or a selector for any of these. Defaults to the window containing the elements.
-     *
-     * The size of the element is defined by its border-box, which includes its padding and border. Alternatively, the
-     * content-box of the element can be used, excluding padding and borders.
-     *
      * @param {Window|Document|HTMLElement|jQuery|string} [container=window]
      * @param {Object}                                    [opts]
      * @param {boolean}                                   [opts.partially=false]
@@ -124,10 +49,6 @@
     };
 
     /**
-     * Acts as a filter and returns the elements in the set which are in view inside the window.
-     *
-     * Shorthand for `$elem.inView( $elem.ownerWindow(), opts );`
-     *
      * @param {Object}        [opts]
      * @param {boolean}       [opts.partially=false]
      * @param {boolean}       [opts.excludeHidden=false]
@@ -142,15 +63,6 @@
     };
 
     /**
-     * Returns true if the element is in view inside the window, or inside another container. Examines the first element
-     * in a set.
-     *
-     * The container can be a window, iframe, scrollable element (overflow:scroll or overflow:auto), an element with
-     * overflow:hidden, or a selector for any of these. Defaults to the window containing the elements.
-     *
-     * The size of the element is defined by its border-box, which includes its padding and border. Alternatively, the
-     * content-box of the element can be used, excluding padding and borders.
-     *
      * @param {Window|Document|HTMLElement|jQuery|string} [container=window]
      * @param {Object}                                    [opts]
      * @param {boolean}                                   [opts.partially=false]
@@ -166,10 +78,6 @@
     };
 
     /**
-     * Returns true if the element is in view inside the window. Examines the first element in a set.
-     *
-     * Shorthand for `$elem.isInView( $elem.ownerWindow(), opts );`
-     *
      * @param {Object}        [opts]
      * @param {boolean}       [opts.partially=false]
      * @param {boolean}       [opts.excludeHidden=false]
@@ -183,9 +91,6 @@
         return isInView( this, ownerWindow( this ), opts );
     };
 
-    /**
-     * Custom :inViewport selector, equivalent to calling `inViewport()` on the set.
-     */
     $.expr.match.inviewport = /^(?:inVieport)$/i;
 
     $.expr.setFilters.inviewport = $.expr.createPseudo( function () {
@@ -350,6 +255,10 @@
 
     /**
      * Does the actual work of $.scrollbarWidth. Protected from external modification. See $.scrollbarWidth for details.
+     *
+     * Adapted from Ben Alman's scrollbarWidth plugin. See
+     * - http://benalman.com/projects/jquery-misc-plugins/#scrollbarwidth
+     * - http://jsbin.com/zeliy/1
      *
      * @returns {number}
      */
