@@ -2,6 +2,7 @@
     "use strict";
 
     var _scrollbarWidth,
+        _useGetComputedStyle = !! window.getComputedStyle,
         root = window,
         $root = $( window );
 
@@ -747,7 +748,8 @@
     function getCss ( elem, properties, opts ) {
         var i, length, name,
             props = {},
-            computedStyles = ( elem.ownerDocument.defaultView || elem.ownerDocument.parentWindow ).getComputedStyle( elem, null );
+            _window = ( elem.ownerDocument.defaultView || elem.ownerDocument.parentWindow ),
+            computedStyles = _useGetComputedStyle ? _window.getComputedStyle( elem, null ) : elem.currentStyle;
 
         opts || ( opts = {} );
 
