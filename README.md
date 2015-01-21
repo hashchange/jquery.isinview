@@ -1,20 +1,24 @@
 # jQuery.isInView
 
-This jQuery plugin tells you if elements are in view inside a scrollable container, or inside a container hiding its overflow. It works with regard to the viewport, iframes, or nested scrolling elements. 
+<small>[Setup][setup] - [Example: Lazy loading][example] - [API][api] - [Browser support][browsers] - [Limitations][limitations] - [Performance tips][perftips] - [Build and test][build]</small>
+
+This jQuery plugin tells you if elements are in view inside a scrollable container, or inside a container hiding its overflow. It works with respect to the viewport, iframes, or other scrollable elements. 
 
 **Core methods**
 
-You can choose between [filter methods][filters], an [`:inViewport` selector][api-selector], and [boolean queries][boolean-queries] like [`$elem.isInView()`][api-fn.isInView]. They are optimized for performance and ridiculously fast: filtering 1000 elements takes no more than 3ms on an elderly desktop running Chrome, and about 9ms on an underpowered mobile device. As a result, the plugin is suitable for event handlers which are called frequently - scroll and resize handlers, for instance - and deal with large numbers of elements.
+You can choose between different ways to figure out which elements [are in view][api-core]. The plugin gives you [filters][] like `$elems.inView()`. You get an [`:inViewport` selector][api-selector], too. Or you can use [boolean queries][boolean-queries], such as [`$elem.isInView()`][api-fn.isInView]. 
+
+The methods of the plugin are optimized for performance and ridiculously fast: filtering 1000 elements takes no more than 3ms on an elderly desktop running Chrome, and about 9ms on an underpowered mobile device. As a result, jQuery.isInView is suitable for event handlers which are called frequently - scroll and resize handlers, for instance -, and it can deal with large numbers of elements.
 
 **Useful helpers**
 
-jQuery.isInView exposes a number of useful helper functions which are valuable in their own right. You get [`$elem.hasScrollbar()`][api-fn.hasScrollbar], [`$elem.scrollbarWidth()`][api-fn.scrollbarWidth] - telling you about the space taken up by scroll bars in a given element - and the global [`$.scrollbarWidth()`][api-scrollbarWidth], which returns a browser-specific constant. Finally, there is [`$elem.ownerWindow()`][api-fn.ownerWindow] which is helpful for operations in IFrames and child windows.
+jQuery.isInView exposes a number of [useful helper functions][api-helpers] which are valuable in their own right. One is [`$elem.hasScrollbar()`][api-fn.hasScrollbar]. You also get [`$elem.scrollbarWidth()`][api-fn.scrollbarWidth], telling you about the space taken up by scroll bars inside a given element. The global [`$.scrollbarWidth()`][api-scrollbarWidth] returns a browser-specific constant. Finally, there is [`$elem.ownerWindow()`][api-fn.ownerWindow], which is helpful for operations in iframes and child windows.
 
 (If you think the API is a bit too prolific for your taste, feel free to overwrite any part of it with your own jQuery extensions. Each plugin method is independent of the others, at least with regard to the public API.)
 
 **Tests**
 
-Browsers are a moving target for development, and full of quirks, too. In this environment, the plugin needs to prove that it works. It comes along with a massive [test suite][tests], auto-generated from diverse scenarios and a carefully crafted set of base tests. [Performance tests][perftests] are also part of the package.
+Browsers are a moving target for development, and they are full of quirks, too. In this environment, the plugin needs to prove that it works. It comes along with a massive [test suite][tests], auto-generated from diverse scenarios and a carefully crafted set of base tests. [Performance tests][perftests] are also part of the package.
 
 ## Dependencies and setup
 
@@ -36,6 +40,7 @@ Our first iteration results in the following code:
 var $scrollable = $( window ),
     $images = $( ".imageContainer img" )
         .width( 200 ).height( 100 ),            // see (*)
+    
     loader = function () {
         var loaded = [];
         $images
@@ -51,27 +56,29 @@ $scrollable.scroll( _.throttle( loader, 100 ) );
 loader();                                       // see (**)
 ```
 
-So far, we use `$images.inViewport()` to filter the images and grab those which are already on screen. Only then do we load the actual image assets. That is too late.
+Here, we use [`$images.inViewport()`][api-fn.inViewport] to filter the images and grab those which are already on screen. Only then do we load the actual image assets. But that is too late.
 
 ### Timely loading
 
-Let's modify the [`.inViewport()` filter][api-fn.inViewport] to include images which are within 400px of the viewport. We can use the [`tolerance` option][api-options.tolerance] for that: `$images.inViewport( { tolerance: 400 } )`. Done!
+Let's improve our code and load images when they are within 400px of the viewport. For that, we modify the [`.inViewport()` filter][api-fn.inViewport] with the [`tolerance` option][api-options.tolerance]: `$images.inViewport( { tolerance: 400 } )`. Done!
 
-So what exactly does "in view" mean? An element is considered to be "in view" when it is completely visible: its content box, padding, and border, every tiny bit of it. But we can change that. Perhaps we decide that images should load as soon as they begin to move into the tolerance zone, even if only partially. For that, there is the [`partially` option][api-options.partially]: `$images.inViewport( { partially: true, tolerance: 400 } )`.
+Next, we should ask ourselves what "in view" means, exactly. When we say that "an element" is "in view", do we talk about the element as a whole, or is part of it enough? And does it include padding and border? 
 
-Conversely, we could be more focused and declare that we only care about the content area, and not about the padding or border of an element. Another option, [`box: "content-box"`][api-options.box], would flip that particular switch. For lazy loading, however, being that specific does not make sense, so we leave the option at its default value, `"border-box"`.
+For jQuery.isInView, an element is considered to be "in view" when it is completely visible: its content box, padding, and border, every tiny bit of it. But we can change that. Perhaps we decide that images should load as soon as they begin to move into the tolerance zone, even if only partially. For that, there is the [`partially` option][api-options.partially]: `$images.inViewport( { partially: true, tolerance: 400 } )`.
+
+In addition, we could be more focused and declare that we only care about the content area, and not about the padding or border of an element. The option [`box: "content-box"`][api-options.box] would flip that particular switch. For lazy loading, however, being that specific does not make sense, so we leave the option at its default value, `"border-box"`.
 
 ### Flexible container
 
-Imagine that we don't want to scroll the viewport, but rather the `.imageContainer` itself. So we redefine `$scrollable = $( ".imageContainer" )` in the snippet above. We also set it to `overflow: auto` in the CSS. 
+Now, imagine that we don't want to scroll the viewport for some reason, and scroll our container div, `.imageContainer`, instead. So we redefine `$scrollable = $( ".imageContainer" )` in the snippet above. We also set it to `overflow: auto` in the CSS. 
 
-But what else do we need to change? We can no longer use `.inViewport()`, so we turn to the more flexible [`.inView()` method][api-fn.inView] instead. It accepts two arguments: the container (`$scrollable` in our case), and the options we have arrived at above. Here is our final filter, then: `$images.inView( $scrollable, { partially: true, tolerance: 400 } )`. It also works for our original case, where `$scrollable` is a window.
+But what else do we need to change? We can no longer use `.inViewport()`, as its name suggests. So we replace it with the more flexible [`.inView()` method][api-fn.inView]. It accepts two arguments: the container (`$scrollable` in our case), and the options we have chosen above. Here is our final filter, then: `$images.inView( $scrollable, { partially: true, tolerance: 400 } )`. It also works for our initial scenario, where `$scrollable` is a window.
 
-That's it. This short example should leave you with a pretty good understanding of what jQuery.isInView can do. And it is safe to use, too. The final version is not some contrived code you'd never use in real life, but rather an efficient, production-ready way to do lazy loading.
+That's it. This short example should leave you with a pretty good understanding of what jQuery.isInView can do. And as a bonus, the final version is not just some contrived code you'd never use in real life, but rather an efficient, production-ready way to do lazy loading.
 
 Coming up next: a more formal description, more methods, and the fine print. The API section.
 
-<small>_(*) We must assign a width and height to the image tags. Without explicit dimensions, they would not occupy any space in the document and fit into the viewport all at once. Hence, they would all be loaded immediately, defeating the purpose._</small>
+<small>_(*) We must assign a width and height to the image tags. Without explicit dimensions, they would not occupy any space in the document and fit into the viewport all at once. As a result, the images would all be loaded immediately, defeating the purpose._</small>
 
 <small>_(**) We want the first batch of images to appear without scrolling, so we need to call the loader directly once._</small>
 
@@ -89,11 +96,11 @@ These methods operate on a jQuery collection and reduce it to those elements whi
 
 _Returns: jQuery_
 
-Acts as a filter and returns those elements in the collection which are in view inside the window, or inside another container.
+Acts as a filter and returns those elements in the collection which are in view inside the viewport, or inside another container.
 
 The container can be a window, iframe, scrollable element (`overflow: scroll` or `overflow: auto`), an element with `overflow: hidden`, or a selector for any of these. Defaults to the window containing the elements.
 
-The size of the element is defined by its border-box, which includes its padding and border. Alternatively, the content-box of the element [can be used][api-options.box], excluding padding and borders.
+The size of an element is defined by its border-box, which includes its padding and border. Alternatively, the content-box of the element [can be used][api-options.box], excluding padding and borders.
 
 Accepts the [options for core queries][api-options].
 
@@ -101,7 +108,7 @@ Accepts the [options for core queries][api-options].
 
 _Returns: jQuery_
 
-Acts as a filter and returns those elements in the collection which are in view inside the window. Shorthand for `$elem.inView( $elem.ownerWindow(), opts )`.
+Acts as a filter and returns those elements in the collection which are in view inside the window. Shorthand for `$elem.inView( $elem.ownerWindow(), options )`.
 
 Accepts the [options for core queries][api-options].
 
@@ -113,17 +120,17 @@ Does not accept options.
 
 #### Boolean queries
 
-These methods operate on a single element and return if a given element is in view.
+These methods operate on a single element and return whether or not a given element is in view.
 
 ##### .isInView( [container] [, options] )
 
 _Returns: boolean_
 
-Returns true if the element is in view inside the window, or inside another container. Examines the first element in a jQuery collection.
+Returns true if the element is in view inside the viewport, or inside another container. Examines the first element in a jQuery collection.
 
-The container can be a window, iframe, scrollable element (`overflow: scroll` or `overflow: auto`), an element with `overflow: hidden`, or a selector for any of these. Defaults to the window containing the elements.
+The container can be a window, iframe, scrollable element (`overflow: scroll` or `overflow: auto`), an element with `overflow: hidden`, or a selector for any of these. Defaults to the window containing the element.
 
-The size of the element is defined by its border-box, which includes its padding and border. Alternatively, the content-box of the element [can be used][api-options.box], excluding padding and borders.
+The size of an element is defined by its border-box, which includes its padding and border. Alternatively, the content-box of the element [can be used][api-options.box], excluding padding and borders.
 
 Accepts the [options for core queries][api-options].
 
@@ -131,13 +138,49 @@ Accepts the [options for core queries][api-options].
 
 _Returns: boolean_
 
-Returns true if the element is in view inside the window. Examines the first element in a jQuery collection. Shorthand for `$elem.isInView( $elem.ownerWindow(), opts )`.
+Returns true if the element is in view inside the window. Examines the first element in a jQuery collection. Shorthand for `$elem.isInView( $elem.ownerWindow(), options )`.
 
 Accepts the [options for core queries][api-options].
 
 #### Options
 
-TODO list options
+The following options are shared by all core methods of jQuery.isInView.
+
+##### options.partially
+
+_Type: boolean, default: false_
+
+If set to true, elements which are just partially inside the container are deemed to be "in view", too. By default, an element must be in full view in order to be included.
+
+##### options.box
+
+_Type: string, default: "border-box", alternative: "content-box"_
+
+By default, an element is defined by its border-box and considered to be "in view" if its border, padding, and content area are inside the container. With the `box` option set to `"content-box"`, borders and padding are ignored - only the content area determines if an element is in or out of view.
+
+Please be aware that the `"content-box"` option requires additional DOM queries for every element in a jQuery set, and therefore makes filtering a lot slower. See the [performance tips below][perftips].
+
+##### options.excludeHidden
+
+_Type: boolean, default: false_
+
+If set to true, only elements which take up visible space in the document can be "in view". Elements hidden with `display: none`, or have a size of zero, are "not in view" regardless of their position. 
+
+By default, elements without dimensions on screen can be "in view" if their location is inside the container. (Somewhat counter-intuitively, this is also [a little faster to check][perftips].) 
+
+##### options.tolerance
+
+_Type: number or string, default: 0_
+
+Extends the area in which an element is considered to be "in view". That zone is enlarged by the specified amount on each side of the container. Conversely, a negative value "shrinks" the zone, making it smaller than the container.
+
+The value can either be passed as a number, which is taken to mean "px", or with a unit ("px" or "%" only).
+
+##### options.direction
+
+_Type: string, default: "both", other values: "horizontal", "vertical"_
+
+Restricts a query or filter to a single dimension: `"horizontal"` or `"vertical"`. When evaluating whether or not an element is in view, only that dimension is taken into account.
 
 ### Helpers
 
@@ -155,15 +198,15 @@ The return type depends on whether one or both axes are queried. For a single ax
 
 Only acts on the first element of a jQuery collection. Returns undefined if the collection is empty.
 
-The `.hasScrollbar` method can be called on any item in a jQuery collection. It attempts to convert items intelligently into a sensible target for a scroll bar query if possible. Specifically, `.hasScrollbar()`  
+The `.hasScrollbar` method can be called on any sort of item a jQuery collection can hold. It attempts to convert the item intelligently into a sensible target for a scroll bar query if possible. Specifically,
 
-- looks for window scroll bars if called on a window, document, or document element (html tag)
-- looks for scroll bars on the content window of an iframe if called on the iframe element
-- looks for scroll bars on the body tag itself (!) if called on the body. Usually, there aren't any - if you want to find out about window scroll bars, don't call the method on the body.
+- when called on a window, document, or document element (`<html>` tag), `.hasScrollbar()` looks for window scroll bars
+- when called on an iframe element, `.hasScrollbar()` looks for scroll bars on the content window of the iframe
+- when called on the body, `.hasScrollbar()` looks for scroll bars on the body tag itself (!). That's because in exotic scenarios, the body _can_ have scroll bars of its own. Usually, there aren't any - if you want to find out about window scroll bars, don't call `.hasScrollbar()` on the body.
 
-Please be aware that the method checks for the presence of a scroll bar and nothing else. It doesn't mean that the scroll bar actually scrolls, or takes up any space:
+Please be aware that the method checks for the presence of a scroll bar and nothing else. It doesn't mean that the scroll bar actually scrolls, or takes up any space in the document:
 
-- It always returns true for `overflow: scroll`, even if the element doesn't contain content which needs to be scrolled.
+- It always returns true for elements set to `overflow: scroll`. That is because scroll bars appear even if an element doesn't contain content which needs to be scrolled.
 - It returns true if there is a scroll bar of width 0, which is the standard behaviour of Safari on the Mac and on iOS.
 
 ##### .scrollbarWidth( [axis] )
@@ -172,15 +215,15 @@ _Returns: number or object (or undefined)_
 
 Returns the effective size (width) of a scrollbar on the element, in pixels, as a number without unit. The axis can be specified as `"horizontal"`, `"vertical"`, or `"both"`. Both axes are queried by default.
 
-The return type depends on whether one or both axes are queried. For a single axis, the method returns a number. For both axes, it returns an object with the size of each individual scroll bar, e.g. `{ vertical: 28, horizontal: 0 }`.
+The return type depends on whether one or both axes are queried. For a single axis, the method returns a number. For both axes, it returns an object with the size of each individual scroll bar, e.g. `{ vertical: 17, horizontal: 0 }`.
 
-For a given axis, the method returns the value of [`$.scrollbarWidth()`][api-scrollbarWidth], a browser constant, if there is a scroll bar, and 0 if there isn't. It does not handle custom scroll bars. The default scroll bars of the browser are expected to appear.
+For a given axis, the method returns the value of [`$.scrollbarWidth()`][api-scrollbarWidth], a browser constant, if there is a scroll bar, and 0 if there isn't. It does not handle custom scroll bars, and expects the default scroll bars of the browser to appear.
 
 Only acts on the first element of a jQuery collection. Returns undefined if the collection is empty.
 
 Please be aware that the method does not allow you to infer the presence of a scroll bar, or whether it actually scrolls:
 
-- It always returns the default scroll bar width for `overflow: scroll`, even if the element doesn't contain content which needs to be scrolled.
+- It always returns the default scroll bar width for elements set to `overflow: scroll`. That is because scroll bars appear even if an element doesn't contain content which needs to be scrolled.
 - It returns 0 if there is no scroll bar, but also if there _is_ a scroll bar of width 0, which is the standard behaviour of Safari on the Mac and on iOS.
 
 For the type of elements the method can be called on, and how they are handled, see [`$.fn.hasScrollbar`, above][api-fn.hasScrollbar].
@@ -191,9 +234,9 @@ _Returns: number_
 
 Returns the size (width) of the scrollbar for a given browser, in pixels, as a number without unit.
 
-Unlike the preceding [`.scrollbarWidth` method][api-fn.scrollbarWidth], this one here is _not_ called on a jQuery collection. It returns a browser constant. Invoke it as `$.scrollbarWidth()`.
+Unlike the preceding [`.scrollbarWidth` method][api-fn.scrollbarWidth], this one here is _not_ called on a jQuery collection. Invoke it as `$.scrollbarWidth()`. It returns a browser constant.
 
-If the browser doesn't provide permanent scrollbars, and instead shows them as a temporary overlay while actually scrolling the page, scrollbar size is reported as 0. That is the default behaviour in mobile browsers, and in current versions of OS X.
+If the browser doesn't provide permanent scrollbars, and instead shows them as a temporary overlay while scrolling the page, scrollbar size is reported as 0. That is the default behaviour in mobile browsers, and in current versions of OS X.
 
 #### Other
 
@@ -203,11 +246,11 @@ _Returns: Window (or undefined)_
 
 Returns the window containing the element. Examines the first element in a jQuery collection. 
 
-If the "element" is a window, `ownerWindow` returns the window itself. If there aren't any elements in the jQuery collection, `ownerWindow` returns undefined.
+If the "element" is a window, `.ownerWindow()` returns the window itself. If there aren't any elements in the jQuery collection, `.ownerWindow()` returns undefined.
 
-If the element is inside an iframe, `ownerWindow` returns the window representing the iframe. (Please keep in mind that selecting elements inside an iframe, from code running in the context of the global window, is subject to cross-domain security restrictions and does not always work.)
+If the element is inside an iframe, `.ownerWindow()` returns the window representing the iframe. However, if the element _is_ the iframe, `.ownerWindow()` returns the window containing the iframe (the global `window`, usually).
 
-However, if the element _is_ the iframe, `ownerWindow` returns the window containing the iframe.
+(Please keep in mind that selecting elements inside an iframe, from code running in the context of the global window, is subject to cross-domain security restrictions and does not always work.)
 
 ## Browser support
 
@@ -217,19 +260,61 @@ jQuery.isInView has been tested with
 - IE9+
 - Safari on iOS 8, Chrome on Android 5
 
-The plugin is not formally tested in IE8 (due to a limitation of the test suite), but casual testing has shown that it works there, too. Your mileage may vary, though, if you make heavy use of options - some bugs might have gone unnoticed.
+The plugin is not formally tested in IE8 (due to a limitation of the test suite), and for that reason, IE8 is not supported. That said, it appears to work there, too. Your mileage may vary - if you still have to support IE8, go ahead and use it, but keep your eyes open.
 
-Feel free to [run the test suite][tests] on other devices. Feedback is welcome, of successful tests as well as failing ones.
+Feel free to [run the test suite][tests] on other devices. Feedback is welcome, about successful tests as well as failing ones.
 
 ## Limitations
 
-TODO
+ jQuery.isInView examines whether elements are in or out of view with regard to an _area_, defined by a container. From that perspective, elements only ever drop out of view because they overflow their container. But there are other ways elements can be obscured - and they are not captured by jQuery.isInView.
 
-For now, the plugin doesn't deal with multiple, nested scrolls, but it merely isn't aggregating the results for you yet. You can call it on each individual container and simply chain the results (with `&&` for boolean tests, or filter chaining).
+- No consideration of stacking:
+
+  Positioning can lead to an item being placed on top of another. Floating can obscure the background of a non-floated element. Actual visibility is further complicated by opacity. Obscuring elements by stacking others on top of them is conceptually different from moving elements out of view, which is what the plugin deals with, and not taken into account.
+
+- No consideration of clipping and masking:
+
+  Likewise, jQuery.isInView does not account for the effects of clipping and masking, using the deprecated `clip()`, its successor `clip-path()`, or any[ new masking techniques][css-clipping-masking] which may or may not land in the next crop of browsers.
+
+There are also a few limitations with regard to HTML elements and their styles:
+
+- The plugin doesn't support elements with `position: fixed`, or elements inside containers with `position: fixed`.
+
+- Containers must not be rotated with a CSS transform. Scaling is ok. (You can do anything with content, including rotation, that's ok). 
+
+- The `<object>` tag is not supported as a container.
+
+Finally, the plugin doesn't deal with multiple, nested scrolls yet. But it merely isn't aggregating the results for you. You can call it on each individual container and simply chain the results (with `&&` for boolean tests, or filter chaining).
+
+## Performance tips
+
+A few best practices speed up jQuery.isInView calls, and do so by a huge amount. In hot code paths like scroll handlers, they have the potential to make or break your application as a whole. So here goes.
+
+- If you act on multiple elements, always use [a filter][filters], and never - never! - [a boolean query][boolean-queries] in a loop. In other words, don't do this: 
+  
+  ```javascript
+  $content.each( function () {
+      if ( $( this ).isInViewport() ) { /* ... do stuff */ }    // WRONG!
+  } );
+  ```
+  
+  Instead, use the corresponding filter:
+  
+  ```javascript
+  $content.inViewport().each( function () {
+      // ... do stuff
+  } );
+  ```
+  
+  The speed difference is _huge_. Always prefer filters, and you won't go wrong.
+  
+- The [option `box: "content-box"`][api-options.box] is an expensive choice, _much_ slower than working with the `"border-box"` (which is the default). When performance matters, use it only if you really have to.
+
+- The [option `excludeHidden: true`][api-options.excludeHidden] also has a performance cost, though to a much lesser degree. It is off (false) by default. Leave it off if you can, but don't lose your sleep over it.
 
 ## Build process and tests
 
-If you'd like to fix, customize or otherwise improve the project: here are your tools.
+If you'd like to test, fix, customize or otherwise improve jQuery.isInView: here are your tools.
 
 ### Setup
 
@@ -250,11 +335,11 @@ Some tests are executed in a child window (aka pop-up window). Please _disable t
 
 To run the tests on on remote clients (mobile devices), start a web server with `grunt interactive` and visit `http://[your-host-ip]:9400/web-mocha/` with the client browser. Running the tests in the browser like this takes a _long_ time, so it makes sense to disable the power-save/sleep/auto-lock timeout on the mobile device. 
 
-Further, on iOS, you need to guide the tests along. Even with the pop-up blocker disabled, iOS displays notifications each time a child window is opened by a test, and you need to dismiss each notification manually. You have about a minute to hit OK before the related part of the test suite times out. These notifications show up multiple times, so keep an eye on your device until all tests are done.
+Further, on iOS, you need to guide the tests along. Even with the pop-up blocker disabled, iOS displays a notification each time a child window is opened by a test, and you need to dismiss each notification manually. You have about a minute to hit OK before the related part of the test suite times out. These notifications show up multiple times, so keep an eye on your device until all tests are done.
 
 #### Performance tests
 
-You can examine the performance of jQuery.isInView, and compare it to some other popular plugins which served as a benchmark during development. Spin up a server with `grunt demo` and navigate to the performance test page, `http://[your-host-ip]:9400/demo/perftest/`. 
+You can examine the performance of jQuery.isInView, and compare it to some other popular plugins which have served as a benchmark during development. Spin up a server with `grunt demo` and navigate to the performance test page, `http://[your-host-ip]:9400/demo/perftest/`. 
 
 #### Tool chain and commands
 
@@ -289,16 +374,35 @@ MIT.
 
 Copyright (c) 2014, 2015 Michael Heim.
 
+[dist-dev]: https://raw.github.com/hashchange/jquery.isinview/master/dist/jquery.isinview.js "jquery.isinview.js"
+[dist-prod]: https://raw.github.com/hashchange/jquery.isinview/master/dist/jquery.isinview.min.js "jquery.isinview.min.js"
+[dist-amd-dev]: https://raw.github.com/hashchange/jquery.isinview/master/dist/amd/jquery.isinview.js "jquery.isinview.js, AMD build"
+[dist-amd-prod]: https://raw.github.com/hashchange/jquery.isinview/master/dist/amd/jquery.isinview.min.js "jquery.isinview.min.js, AMD build"
+
+[setup]: #dependencies-and-setup "Setup"
+[example]: #usage-by-example-lazy-loading "Example:"
+[api]: #api "API"
+[browsers]: #browser-support "Browser support"
+[limitations]: #limitations "Limitations"
+[perftips]: #performance-tips "Performance tips"
+[build]: #build-process-and-tests "Build process and tests"
+
+[api-core]: #core "API: Core methods"
 [filters]: #filters "API: filters"
 [api-fn.inView]: #inview-container-options- "API: .inView()"
 [api-fn.inViewport]: #inviewport-options- "API: .inViewport()"
 [api-selector]: #-inviewport-selector "API: :inViewport selector"
+
 [boolean-queries]: #boolean-queries "API: boolean queries"
 [api-fn.isInView]: #isinview-container-options- "API: .isInView()"
+
 [api-options]: #options "API: Options for core queries"
-[api-options.tolerance]: # "API: "
-[api-options.partially]: # "API: "
-[api-options.box]: # "API: "
+[api-options.tolerance]: #optionstolerance "API: 'tolerance' option"
+[api-options.partially]: #optionspartially "API: 'partially' option"
+[api-options.box]: #optionsbox "API: 'box' option"
+[api-options.excludeHidden]: #optionsexcludehidden "API: 'excludeHidden' option"
+
+[api-helpers]: #helpers "API: Helpers"
 [api-fn.hasScrollbar]: #hasscrollbar-axis- "API: .hasScrollbar()"
 [api-fn.scrollbarWidth]: #scrollbarwidth-axis- "API: .scrollbarWidth()"
 [api-scrollbarWidth]: #jqueryscrollbarwidth- "API: jQuery.scrollbarWidth()"
@@ -307,18 +411,12 @@ Copyright (c) 2014, 2015 Michael Heim.
 [tests]: #running-tests-creating-a-new-build "Running tests, creating a new build"
 [perftests]: #performance-tests "Performance tests"
 
-[dist-dev]: https://raw.github.com/hashchange/jquery.isinview/master/dist/jquery.isinview.js "jquery.isinview.js"
-[dist-prod]: https://raw.github.com/hashchange/jquery.isinview/master/dist/jquery.isinview.min.js "jquery.isinview.min.js"
-[dist-amd-dev]: https://raw.github.com/hashchange/jquery.isinview/master/dist/amd/jquery.isinview.js "jquery.isinview.js, AMD build"
-[dist-amd-prod]: https://raw.github.com/hashchange/jquery.isinview/master/dist/amd/jquery.isinview.min.js "jquery.isinview.min.js, AMD build"
-
 [jQuery]: http://jquery.com/ "jQuery"
 [Underscore]: http://underscorejs.org/ "Underscore.js"
 
 [throttled-scroll]: http://ejohn.org/blog/learning-from-twitter/ "John Resig: Learning from Twitter"
 [Underscore.throttle]: http://underscorejs.org/#throttle "Underscore.js: _.throttle()"
-
-[opera-failing-test-comment]: 
+[css-clipping-masking]: http://css-tricks.com/clipping-masking-css/ "CSS-Tricks: Clipping and Masking in CSS"
 
 [Node.js]: http://nodejs.org/ "Node.js"
 [Bower]: http://bower.io/ "Bower: a package manager for the web"
