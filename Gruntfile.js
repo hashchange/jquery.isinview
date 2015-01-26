@@ -210,6 +210,12 @@ module.exports = function (grunt) {
           livereload: LIVERELOAD_PORT
         }
       },
+      testNoReload: {
+        options: {
+          open: 'http://localhost:<%= connect.options.port %>/web-mocha/',
+          keepalive: true
+        }
+      },
       demo: {
         options: {
           open: 'http://localhost:<%= connect.options.port %>/demo/',
@@ -255,6 +261,7 @@ module.exports = function (grunt) {
   grunt.loadNpmTasks('grunt-focus');
 
   grunt.registerTask('test', ['jshint:components', 'karma:test']);
+  grunt.registerTask('webtest', ['preprocess:interactive', 'sails-linker:interactive_sinon', 'sails-linker:interactive_spec', 'connect:testNoReload']);
   grunt.registerTask('interactive', ['preprocess:interactive', 'sails-linker:interactive_sinon', 'sails-linker:interactive_spec', 'connect:test', 'watch:livereload']);
   grunt.registerTask('demo', ['connect:demo', 'focus:demo']);
   grunt.registerTask('build', ['jshint:components', 'karma:build', 'preprocess:build', 'concat', 'uglify', 'jshint:concatenated']);
