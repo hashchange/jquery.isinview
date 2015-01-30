@@ -2,9 +2,14 @@
     "use strict";
 
     var _scrollbarWidth,
-        _useGetComputedStyle = !! window.getComputedStyle,
+        _useGetComputedStyle = !! window.getComputedStyle,          // IE8, my dear, this is for you
         root = window,
         $root = $( window );
+
+
+    /**
+     * API
+     */
 
     /**
      * @param   {string} [axis="both"]  values "horizontal", "vertical", "both"
@@ -112,6 +117,11 @@
         } );
     } );
 
+
+    /**
+     * Internals
+     */
+
     /**
      * Does the actual work of $.fn.hasScrollbar. Protected from external modification. See $.fn.hasScrollbar for
      * details.
@@ -123,12 +133,9 @@
     function hasScrollbar ( $elem, axis ) {
 
         var queryHorizontal, queryVertical, queryBoth, horizontal, vertical,
-            isWindow, _document, $document, documentElement, body,
-            overflowPropNames, props, bodyProps, bodyBoxProps,
-            bodyOverflowHiddenX, bodyOverflowHiddenY, bodyPositioned,
-            overflowScrollX, overflowScrollY, overflowAutoX, overflowAutoY, overflowVisibleX, overflowVisibleY,
+            isWindow, isBody, _document, $document, documentElement, body, $body, bodyRect,
+            overflowPropNames, elemProps, bodyProps, windowProps, appliedViewportOverflows,
             innerWidth, innerHeight, scrollWidth, scrollHeight,
-            bodyScrollWidth, bodyScrollHeight, ddeScrollWidth, ddeScrollHeight,
             elem = $elem[0];
 
         $elem = $elem.eq( 0 );
@@ -144,6 +151,7 @@
         // Transformations:
         // - If called on a window, we need document, documentElement and body, and discard the element
         // - If called on the document or document element, we treat it like a call on window (above)
+        // - If called on the body, we need document, documentElement and the body itself (again, we discard the element to avoid ambiguity)
         // - If called on an iframe element, we treat it like a window call, using the iframe content window
         isWindow = $.isWindow( elem );
         if ( isWindow ) {
@@ -157,92 +165,154 @@
         } else if ( elem.nodeType === 1 && elem.tagName.toLowerCase() === "iframe" ) {
             _document = elem.contentDocument || elem.contentWindow.document;
             isWindow = true;
+        } else if ( elem === elem.ownerDocument.body ) {
+            _document = elem.ownerDocument;
+            isBody = true;
         }
 
-        if ( isWindow ) {
+        if ( isWindow || isBody ) {
             $document = $( _document );
             documentElement = _document.documentElement;
             body = _document.body;
-            elem = $elem = undefined;
+
+            elem = $elem = undefined;       // won't be needed; discard, to avoid ambiguity in the code below
         }
 
         // Query the overflow settings; if we deal with window scroll bars, we also need those of the body
         overflowPropNames = [ "overflow" ];
         if ( queryHorizontal ) overflowPropNames.push( "overflowX" );
         if ( queryVertical ) overflowPropNames.push( "overflowY" );
-        if ( isWindow ) {
+
+        if ( isWindow || isBody ) {
+            windowProps = getCss( documentElement, overflowPropNames, { toLowerCase: true } );
             bodyProps = getCss( body, [ "overflow", "overflowX", "overflowY", "position" ], { toLowerCase: true } );
-            bodyOverflowHiddenX = bodyProps.overflow === "hidden" || bodyProps.overflowX === "hidden";
-            bodyOverflowHiddenY = bodyProps.overflow === "hidden" || bodyProps.overflowY === "hidden";
-            bodyPositioned = bodyProps.position === "absolute" || bodyProps.position === "relative";
+            appliedViewportOverflows = getAppliedViewportOverflows( windowProps, bodyProps );
+
+            $.extend( bodyProps, appliedViewportOverflows.body );
+            bodyProps.positioned = bodyProps.position === "absolute" || bodyProps.position === "relative";
+
+            windowProps = appliedViewportOverflows.window;
+        } else {
+            elemProps = getCss( elem, overflowPropNames, { toLowerCase: true } );
+            elemProps = getAppliedOverflows( elemProps, true );
         }
 
-        props = getCss( isWindow ? documentElement : elem, overflowPropNames, { toLowerCase: true } );
-
-        overflowScrollX = props.overflowX === "scroll" || ( ! props.overflowX && props.overflow === "scroll" );
-        overflowScrollY = props.overflowY === "scroll" || ( ! props.overflowY && props.overflow === "scroll" );
-        overflowAutoX = props.overflowX === "auto" || ( ! props.overflowX && props.overflow === "auto" );
-        overflowAutoY = props.overflowY === "auto" || ( ! props.overflowY && props.overflow === "auto");
-        overflowVisibleX = props.overflowX === "visible" || ( ! props.overflowX && props.overflow === "visible" );
-        overflowVisibleY = props.overflowY === "visible" || ( ! props.overflowY && props.overflow === "visible" );
-
         if ( isWindow ) {
 
-            if ( queryHorizontal ) horizontal = overflowScrollX || ( overflowAutoX || overflowVisibleX ) && documentElement.clientWidth < $document.width();
-            if ( queryVertical ) vertical = overflowScrollY || ( overflowAutoY || overflowVisibleY ) &&  documentElement.clientHeight < $document.height();
+            if ( queryHorizontal ) horizontal = windowProps.overflowScrollX || windowProps.overflowAutoX && documentElement.clientWidth < $document.width();
+            if ( queryVertical ) vertical = windowProps.overflowScrollY || windowProps.overflowAutoY && documentElement.clientHeight < $document.height();
 
             // Handle body with overflow: hidden
-            if ( bodyOverflowHiddenX || bodyOverflowHiddenY ) bodyBoxProps = getCss( body, [ "borderTopWidth", "borderLeftWidth", "marginTop", "marginLeft" ], { toFloat: true } );
+            if ( bodyProps.overflowHiddenX || bodyProps.overflowHiddenY ) {
+                $.extend( bodyProps, getCss( body, [ "borderTopWidth", "borderLeftWidth", "marginTop", "marginLeft", "marginBottom", "marginRight", "top", "left" ], { toFloat: true } ) );
+                $.extend( windowProps, getCss( documentElement, [ "marginTop", "marginLeft", "borderTopWidth", "borderLeftWidth", "paddingTop", "paddingLeft", "marginBottom", "marginRight", "borderBottomWidth", "borderRightWidth", "paddingBottom", "paddingRight" ], { toFloat: true } ) );
+                bodyRect = getBoundingClientRectCompat( body );
+            }
 
-            if ( bodyOverflowHiddenX ) {
+            // todo extract, at least in parts
+            if ( bodyProps.overflowHiddenX ) {
 
-                if ( bodyPositioned ){
+                windowProps.leftOffsets = windowProps.marginLeft + windowProps.borderLeftWidth + windowProps.paddingLeft;
+                windowProps.horizontalOffsets = windowProps.leftOffsets + windowProps.marginRight + windowProps.borderRightWidth + windowProps.paddingRight;
+                bodyProps.horizontalMargins = bodyProps.marginLeft + bodyProps.marginRight;
+
+                if ( bodyProps.positioned ) {
+
                     // If the body is positioned, it is the offset parent of all content, hence every overflow is hidden.
-                    // Only overflow: scroll on the html element can make scroll bars appear (and they won't have anything
-                    // to scroll).
-                    horizontal = overflowScrollX;
-                } else {
-                    bodyScrollWidth = body.scrollWidth;
-                    ddeScrollWidth = documentElement.scrollWidth;
+                    // Scroll bars would only appear if
+                    //
+                    // - the window (documentElement) is set to overflow: scroll
+                    // - the window is set to overflow: auto, and the body itself, plus padding etc on body and window,
+                    //   does not fit into the viewport.
+                    bodyProps.definesRightDocumentEdge = true;
 
+                    if ( bodyProps.position === "relative" ) {
+                        bodyProps.rightDocumentEdge = Math.max(
+                            // Normal, unpositioned edge
+                            bodyRect.width + bodyProps.horizontalMargins + windowProps.horizontalOffsets,
+                            // Edge when positioned, includes "left" shift, ignores _right_ window padding etc which stays in place.
+                            bodyRect.width + bodyProps.horizontalMargins + bodyProps.left + windowProps.leftOffsets
+                        );
+                    } else {
+                        // Position "absolute"
+                        bodyProps.rightDocumentEdge = bodyProps.left + bodyRect.width + bodyProps.horizontalMargins;
+                    }
+
+                } else {
+                    bodyProps.scrollWidth = body.scrollWidth;
+                    windowProps.scrollWidth = documentElement.scrollWidth;
+                    bodyProps.offsetRight = bodyProps.marginLeft + bodyRect.width + bodyProps.marginRight;
                     // Testing if the document is smaller or equal to the body (it could be larger, e.g. because of
-                    // positioned content). If so, the document does not cause scroll bars. Only overflow:scroll would
-                    // make them appear.
+                    // positioned content). If so, the document cannot cause scroll bars. They would only appear if
+                    //
+                    // - the window (documentElement) is set to overflow: scroll
+                    // - the window is set to overflow: auto, and the body itself, plus padding etc on body and window,
+                    //   does not fit into the viewport.
                     //
                     // Condition 1 captures: Chrome, Chrome on Android, Safari on OS X, iOS, Opera;
                     // Condition 2 captures: FF, IE9+
                     // Browser behaviour can be tested/investigated with http://jsbin.com/vofuba/9/
-                    if ( bodyScrollWidth === ddeScrollWidth || bodyScrollWidth + bodyBoxProps.borderLeftWidth + bodyBoxProps.marginLeft === ddeScrollWidth ) {
-                        horizontal = overflowScrollX;
-                    }
+                    bodyProps.definesRightDocumentEdge = bodyProps.scrollWidth === windowProps.scrollWidth || bodyProps.scrollWidth + bodyProps.borderLeftWidth + bodyProps.marginLeft === windowProps.scrollWidth;
+                    bodyProps.rightDocumentEdge = bodyRect.width + bodyProps.horizontalMargins + windowProps.horizontalOffsets;
+                }
+
+                if ( bodyProps.definesRightDocumentEdge ) {
+                     horizontal = windowProps.overflowScrollX || windowProps.overflowAutoX && bodyProps.rightDocumentEdge > documentElement.clientWidth;
                 }
 
             }
 
-            if ( bodyOverflowHiddenY ) {
+            // See above, bodyOverflowHiddenX branch, for documentation.
+            if ( bodyProps.overflowHiddenY ) {
 
-                if ( bodyPositioned ){
-                    // See above, bodyOverflowHiddenX branch.
-                    vertical = overflowScrollY;
+                windowProps.topOffsets = windowProps.marginTop + windowProps.borderTopWidth + windowProps.paddingTop;
+                windowProps.verticalOffsets = windowProps.topOffsets + windowProps.marginBottom + windowProps.borderBottomWidth + windowProps.paddingBottom;
+                bodyProps.verticalMargins = bodyProps.marginTop + bodyProps.marginBottom;
+
+                if ( bodyProps.positioned ) {
+
+                    bodyProps.definesBottomDocumentEdge = true;
+
+                    if ( bodyProps.position === "relative" ) {
+                        bodyProps.bottomDocumentEdge = Math.max(
+                            // Normal, unpositioned edge
+                            bodyRect.height + bodyProps.verticalMargins + windowProps.verticalOffsets,
+                            // Edge when positioned, includes "top" shift, ignores _bottom_ window padding etc which stays in place.
+                            bodyRect.height + bodyProps.verticalMargins + bodyProps.top + windowProps.topOffsets
+                        );
+                    } else {
+                        // Position "absolute"
+                        bodyProps.bottomDocumentEdge = bodyProps.top + bodyRect.height + bodyProps.verticalMargins;
+                    }
                 } else {
-                    bodyScrollHeight = body.scrollHeight;
-                    ddeScrollHeight = documentElement.scrollHeight;
+                    bodyProps.scrollHeight = body.scrollHeight;
+                    windowProps.scrollHeight = documentElement.scrollHeight;
 
-                    // See above, bodyOverflowHiddenX branch..
-                    if ( bodyScrollHeight === ddeScrollHeight || bodyScrollHeight + bodyBoxProps.borderTopWidth + bodyBoxProps.marginTop === ddeScrollHeight ) {
-                        vertical = overflowScrollY;
-                    }
+                    bodyProps.definesBottomDocumentEdge = bodyProps.scrollHeight === windowProps.scrollHeight || bodyProps.scrollHeight + bodyProps.borderTopWidth + bodyProps.marginTop === windowProps.scrollHeight;
+                    bodyProps.bottomDocumentEdge = bodyRect.height + bodyProps.verticalMargins + windowProps.verticalOffsets;
                 }
+
+                if ( bodyProps.definesBottomDocumentEdge ) {
+                    vertical = windowProps.overflowScrollY || windowProps.overflowAutoY && bodyProps.bottomDocumentEdge > documentElement.clientHeight;
+                }
+
             }
+
+        } else if ( isBody ) {
+
+            // Checking for body scroll bars follows the same logic as checking for window scroll bars.
+            $body = $( body );
+            horizontal = bodyProps.overflowScrollX || bodyProps.overflowAutoX && body.clientWidth < $body.width();
+            vertical = bodyProps.overflowScrollY || bodyProps.overflowAutoY && body.clientHeight < $body.height();
 
         } else {
 
-            // Scroll bars on an HTML element
+            // Scroll bars on an ordinary HTML element
             scrollWidth = elem.scrollWidth;
             scrollHeight = elem.scrollHeight;
 
-            horizontal = scrollWidth > 0 && ( overflowScrollX || overflowAutoX && ( innerWidth = $elem.innerWidth() ) < scrollWidth );
-            vertical = scrollHeight > 0 && ( overflowScrollY || overflowAutoY && ( innerHeight = $elem.innerHeight() ) < scrollHeight );
+            horizontal = scrollWidth > 0 && ( elemProps.overflowScrollX || elemProps.overflowAutoX && ( innerWidth = $elem.innerWidth() ) < scrollWidth );
+            vertical = scrollHeight > 0 && ( elemProps.overflowScrollY || elemProps.overflowAutoY && ( innerHeight = $elem.innerHeight() ) < scrollHeight );
 
             // Detect if the appearance of one scroll bar causes the other to appear, too.
             // todo what if this triggers and overflow is hidden or visible - phantom scroll bar detected? what does scroll height return for these overflow types?
@@ -433,7 +503,7 @@
         config.borderBox = opts.box !== 'content-box';
         config.containerIsWindow = $.isWindow( container );
 
-        if ( typeof opts.tolerance !== "undefined" ) {
+        if ( opts.tolerance !== undefined ) {
             config.toleranceType = ( isNumber( opts.tolerance ) || opts.tolerance.slice( -3 ) === "px" ) ? "add" : "multiply";
             config.tolerance = config.toleranceType === "add" ? parseFloat( opts.tolerance ) : parseFloat( opts.tolerance ) / 100 + 1;
         } else {
@@ -571,7 +641,7 @@
      * is much slower.
      *
      * @param   {HTMLElement} elem
-     * @returns {Object}
+     * @returns {ClientRect}
      */
     function getContentRect( elem ) {
 
@@ -590,12 +660,130 @@
     }
 
     /**
+     * Determines the effective overflow setting of an element, separately for each axis, based on the `overflow`,
+     * `overflowX` and `overflowY` properties of the element which must be passed in as a hash.
+     *
+     * Returns a hash of the computed results for overflowX, overflowY. Also adds boolean status properties to the hash
+     * if the createBooleans flag is set. These are properties for mere convenience. They signal if a particular
+     * overflow type applies (e.g. overflowHiddenX = true/false).
+     *
+     * ATTN The method does not take the special relation of body and documentElement into account. That is handled by
+     * the more specific getAppliedViewportOverflows() function.
+     *
+     * The effective overflow setting is established as follows:
+     *
+     * - If a computed value for `overflow(X/Y)` exists, it gets applied to the axis.
+     * - If not, the computed value of the general `overflow` setting gets applied to the axis.
+     * - If there is no computed value at all, the overflow default gets applied to the axis. The default is
+     *   "visible" in seemingly every browser out there. Falling back to the default should never be necessary,
+     *   though, because there always is a computed value.
+     *
+     * @param {Object}        props            hash of element properties (computed values)
+     * @param {string}        props.overflow
+     * @param {string}        props.overflowX
+     * @param {string}        props.overflowY
+     * @param {boolean=false} createBooleans   if true, create the full set of boolean status properties, e.g.
+     *                                         overflowVisibleX (true/false), overflowHiddenY (true/false) etc
+     * @returns {AppliedOverflow}              hash of the computed results: overflowX, overflowY, optional boolean
+     *                                         status properties
+     */
+    function getAppliedOverflows ( props, createBooleans ) {
+        var status = {};
+
+        // Establish the applied overflow (e.g. overflowX: "scroll")
+        status.overflowX = props.overflowX || props.overflow || "visible";
+        status.overflowY = props.overflowY || props.overflow || "visible";
+
+        // Create the derived boolean status properties (e.g overflowScrollX: true)
+        if ( createBooleans ) {
+            $.each( [ "Visible", "Auto", "Scroll", "Hidden" ], function ( index, type ) {
+                var lcType = type.toLowerCase();
+                status["overflow" + type + "X"] = status.overflowX === lcType;
+                status["overflow" + type + "Y"] = status.overflowY === lcType;
+            } );
+        }
+
+        return status;
+    }
+
+    /**
+     * Determines the effective overflow setting of the viewport and body, separately for each axis, based on the
+     * `overflow`, `overflowX` and `overflowY` properties of the documentElement and body which must be passed in as a
+     * hash.
+     *
+     * Returns the results for viewport and body in an aggregated `{ window: ..., body: ...}` hash.
+     *
+     * For the basic resolution mechanism, see getAppliedOverflows(). When determining the effective overflow, the
+     * peculiarities of viewport and body are taken into account:
+     *
+     * - Viewport and body overflows are interdependent. If the nominal viewport overflow for a given axis is "visible",
+     *   the viewport inherits the body overflow for that axis, and the body overflow is set to "visible". Curiously,
+     *   that transfer is _not_ reflected in the computed values, it just manifests in behaviour.
+     *
+     * - Once that is done, if the viewport overflow is still "visible" for an axis, it is effectively turned into
+     *   "auto". Scroll bars appear when the content overflows the viewport (ie, "auto" behaviour). Hence, this function
+     *   will indeed report "auto". Again, the transformation is only manifest in behaviour, not in the computed values.
+     *
+     * NB Additional status properties (see getAppliedOverflows) are always generated here.
+     *
+     * @param {Object} documentElementProps            hash of documentElement properties (computed values)
+     * @param {string} documentElementProps.overflow
+     * @param {string} documentElementProps.overflowX
+     * @param {string} documentElementProps.overflowY
+     *
+     * @param {Object} bodyProps                       hash of body properties (computed values)
+     * @param {string} bodyProps.overflow
+     * @param {string} bodyProps.overflowX
+     * @param {string} bodyProps.overflowY
+     *
+     * @returns {{window: AppliedOverflow, body: AppliedOverflow}}
+     */
+    function getAppliedViewportOverflows ( documentElementProps, bodyProps ) {
+        var _window = getAppliedOverflows( documentElementProps, false ),
+            body = getAppliedOverflows( bodyProps, false ),
+            consolidated = { window: {}, body: {} };
+
+        // Handle the interdependent relation between body and window (documentElement) overflow
+        if ( _window.overflowX === "visible" ) {
+            // If the window overflow is set to "visible", body props get transferred to the window, body changes to
+            // "visible". (Nothing really changes if both are set to "visible".)
+            consolidated.body.overflowX = "visible";
+            consolidated.window.overflowX = body.overflowX;
+        } else {
+            // No transfer of properties.
+            // - If body overflow is "visible", it remains that way, and the window stays as it is.
+            // - If body and window are set to properties other than "visible", they keep their divergent settings.
+            consolidated.body.overflowX = body.overflowX;
+            consolidated.window.overflowX = _window.overflowX;
+        }
+
+        // Repeat for overflowY
+        if ( _window.overflowY === "visible" ) {
+            consolidated.body.overflowY = "visible";
+            consolidated.window.overflowY = body.overflowY;
+        } else {
+            consolidated.body.overflowY = body.overflowY;
+            consolidated.window.overflowY = _window.overflowY;
+        }
+
+        // window.overflow(X/Y): "visible" actually means "auto" because scroll bars appear as needed; transform
+        if ( consolidated.window.overflowX === "visible" ) consolidated.window.overflowX = "auto";
+        if ( consolidated.window.overflowY === "visible" ) consolidated.window.overflowY = "auto";
+
+        // Add the boolean status properties to the result
+        consolidated.window = getAppliedOverflows( consolidated.window, true );
+        consolidated.body = getAppliedOverflows( consolidated.body, true );
+
+        return consolidated;
+    }
+
+    /**
      * Establishes the container and returns it in a jQuery wrapper.
      *
      * Resolves and normalizes the input, which may be a document, HTMLElement, window, or selector string. Corrects
      * likely mistakes, such as passing in a document or an iframe, rather than the corresponding window.
      *
-     * @param {Window|Document|HTMLElement|jQuery|string} container
+     * @param {Window|Document|HTMLElement|HTMLIFrameElement|jQuery|string} container
      * @returns {jQuery}
      */
     function wrapContainer ( container ) {
@@ -665,7 +853,7 @@
             throw new Error( 'Invalid option value: box = "' + opts.box + '"' );
         }
 
-        if ( typeof opts.tolerance !== "undefined" ) {
+        if ( opts.tolerance !== undefined ) {
             isNum = isNumber( opts.tolerance );
             isNumWithUnit = isString( opts.tolerance ) && ( /^[+-]?\d*\.?\d+(px|%)?$/.test( opts.tolerance ) );
             if ( ! ( isNum || isNumWithUnit ) ) throw new Error( 'Invalid option value: tolerance = "' + opts.tolerance + '"' );
@@ -767,6 +955,35 @@
     }
 
     /**
+     * Returns the bounding client rect, including width and height properties. For compatibility with IE8, which
+     * supports getBoundingClientRect but doesn't calculate width and height.
+     *
+     * Use only when width and height are actually needed.
+     *
+     * Will be removed when IE8 support is dropped entirely.
+     *
+     * @param   {HTMLElement} elem
+     * @returns {ClientRect}
+     */
+    function getBoundingClientRectCompat ( elem ) {
+        var elemRect = elem.getBoundingClientRect();
+
+        if ( elemRect.width === undefined || elemRect.height === undefined ) {
+            // Fix for IE8
+            elemRect = {
+                top: elemRect.top,
+                left: elemRect.left,
+                bottom: elemRect.bottom,
+                right: elemRect.right,
+                width:  elemRect.right - elemRect.left,
+                height: elemRect.bottom - elemRect.top
+            };
+        }
+
+        return elemRect;
+    }
+
+    /**
      * Calls parseFloat on each value. Useful for removing units from numeric values.
      *
      * @param   {Object} object
@@ -782,6 +999,14 @@
         return transformed;
     }
 
+    /**
+     * Returns whether or not a value is of type number. Also rejects NaN as a number.
+     *
+     * NB This is not the same as $.isNumeric because $.isNumeric( "3" ) is true while isNumber( "3" ) is false.
+     *
+     * @param {*} value
+     * @returns {boolean}
+     */
     function isNumber ( value ) {
         // Done as in the Lodash compatibility build, but rejecting NaN as a number.
         var isNumeric = typeof value === 'number' || value && typeof value === 'object' && Object.prototype.toString.call( value ) === '[object Number]' || false;
@@ -794,5 +1019,28 @@
         // Done as in the Lodash compatibility build
         return typeof value === 'string' || value && typeof value === 'object' && Object.prototype.toString.call(value) === '[object String]' || false;
     }
+
+    /**
+     * Custom types.
+     *
+     * For easier documentation and type inference.
+     */
+
+    /**
+     * @name  AppliedOverflow
+     * @type  {Object}
+     *
+     * @property {string}  overflowX
+     * @property {string}  overflowY
+     * @property {boolean} overflowVisibleX
+     * @property {boolean} overflowVisibleY
+     * @property {boolean} overflowAutoX
+     * @property {boolean} overflowAutoY
+     * @property {boolean} overflowScrollX
+     * @property {boolean} overflowScrollY
+     * @property {boolean} overflowHiddenX
+     * @property {boolean} overflowHiddenY
+     */
+
 
 }( jQuery || $ ));  // todo best solution?

@@ -5,7 +5,24 @@
     describe( '$.fn.hasScrollbar: Geometry', function () {
 
         /** @type {DOMFixture}  populated by Setup.create() */
-        var f;
+        var f,
+
+            viewportShowsHidden;
+
+        beforeEach( function () {
+
+            // In iOS, if the effective overflow setting of the viewport is "hidden", it is ignored and treated as
+            // "auto". Content can still overflow the viewport, and scroll bars appear as needed.
+            //
+            // Now, the catch. This behaviour is impossible to feature-detect. The computed values are not at all
+            // affected by it, and the results reported eg. for clientHeight, offsetHeight, scrollHeight of body and
+            // documentElement do not differ between Safari on iOS and, say, Chrome. The numbers don't give the
+            // behaviour away.
+            //
+            // So we have to resort to browser sniffing here. It sucks, but there is literally no other option.
+            viewportShowsHidden = isIOS();
+
+        } );
 
         afterEach( function () {
             f.cleanDom();
@@ -23,9 +40,9 @@
                 f = Setup.create( "window", f );
 
                 return f.ready.done( function () {
-                    $window = $( window );
-                    $documentElement = $( document.documentElement );
-                    $body = $( "body" ).contentOnly();
+                    $window = $( f.window );
+                    $documentElement = $( f.document.documentElement );
+                    $body = $( "body", f.document ).contentOnly();
                     viewportWidth = $window.width();
                     viewportHeight = $window.height();
                 } );
@@ -42,14 +59,6 @@
                     // This happens, for instance, when an absolutely positioned element extends off screen. The
                     // positioned element does not enlarge the body (assuming the body is not positioned itself).
                     f.$el.positionAt( 0, 0 ).height( viewportHeight + 1 );
-                    expect( $window.hasScrollbar() ).to.eql( { horizontal: false, vertical: true } );
-                } );
-
-                it( 'when the body is set to overflow:hidden and fits inside the viewport vertically, but absolutely positioned content in the document does not', function () {
-                    // The positioned element does not enlarge the body (assuming the body is not positioned itself). So
-                    // the overflow:hidden setting on the body is in fact irrelevant, a scroll bar still appears.
-                    f.$el.positionAt( 0, 0 ).height( viewportHeight + 1 );
-                    $body.overflow( "hidden" );
                     expect( $window.hasScrollbar() ).to.eql( { horizontal: false, vertical: true } );
                 } );
 
@@ -83,7 +92,7 @@
 
                 it( 'when the body content is exactly as high as the viewport, and the body has top padding (box-sizing: border-box)', function () {
                     // ... and nothing else.
-                    f.applyBorderBox();
+                    f.applyBorderBox( "html" );
                     f.$el.height( viewportHeight );
                     $body.topPadding( 1 );
                     expect( $window.hasScrollbar() ).to.eql( { horizontal: false, vertical: true } );
@@ -91,7 +100,7 @@
 
                 it( 'when the body content is exactly as high as the viewport, and the body has bottom padding (box-sizing: border-box)', function () {
                     // ... and nothing else.
-                    f.applyBorderBox();
+                    f.applyBorderBox( "html" );
                     f.$el.height( viewportHeight );
                     $body.bottomPadding( 1 );
                     expect( $window.hasScrollbar() ).to.eql( { horizontal: false, vertical: true } );
@@ -111,7 +120,48 @@
                     expect( $window.hasScrollbar() ).to.eql( { horizontal: false, vertical: true } );
                 } );
 
-                if( $.scrollbarWidth() === 0 ) {
+                it( 'when the body is set to overflow:hidden and fits inside the viewport vertically, but absolutely positioned content in the document does not', function () {
+                    // The positioned element does not enlarge the body (assuming the body is not positioned itself). So
+                    // the overflow:hidden setting on the body is in fact irrelevant, a scroll bar still appears.
+                    //
+                    // ATTN The viewport (documentElement) must be set to overflow: auto. Otherwise, the body doesn't
+                    // retain its overflow setting, and it gets transferred to the viewport instead.
+                    // See http://jsbin.com/japewa/
+                    //
+                    // (This is straightforward to do in CSS, but is treacherous in JS because changing these overflows
+                    // after the page load can be buggy in browsers. Check closely for anomalies if the test fails in
+                    // just a single browser.)
+                    f.$el.positionAt( 0, 0 ).height( viewportHeight + 1 );
+                    $documentElement.overflow( "auto" );
+                    $body.overflow( "hidden" );
+                    expect( $window.hasScrollbar() ).to.eql( { horizontal: false, vertical: true } );
+                } );
+
+                it( 'when the body content extends beyond the viewport horizontally and vertically, and the body is set to overflow: hidden but without an explicit size', function () {
+                    // Because the body doesn't have an explicit with or height, it expands to the size of its content.
+                    // Horizontally, that expansion stops when the body hits the window edge, and excess content is
+                    // hidden. Vertically, the body expands until the content fits inside, even beyond the window
+                    // height.
+                    //
+                    // As a result, the overflow: hidden setting on the body works horizontally, but is irrelevant
+                    // vertically because there won't be any overflow, ever. Thus, the expanded body makes a vertical
+                    // scroll bar appear.
+                    //
+                    // ATTN The viewport (documentElement) must be set to overflow: auto. Otherwise, the body doesn't
+                    // retain its overflow setting, and it gets transferred to the viewport instead.
+                    // See http://jsbin.com/japewa/
+                    //
+                    // (This is straightforward to do in CSS, but is treacherous in JS because changing these overflows
+                    // after the page load can be buggy in browsers. Check closely for anomalies if the test fails in
+                    // just a single browser.)
+                    $documentElement.overflow( "auto" );
+                    $body.overflow( "hidden" );
+                    f.$el.contentBox( viewportWidth + 1, viewportHeight + 1 );
+
+                    expect( $window.hasScrollbar() ).to.eql( { horizontal: false, vertical: true } );
+                } );
+
+                if ( $.scrollbarWidth() === 0 ) {
 
                     it( 'when the body is as wide as the viewport without scroll bars, and extends a bit beyond it vertically (in browsers with scroll bar width 0)', function () {
                         // Normally, the vertical scroll bar would obscure part of the body and force a horizontal
@@ -152,7 +202,16 @@
                 it( 'when the body is set to overflow:hidden and fits inside the viewport horizontally, but absolutely positioned content in the document does not', function () {
                     // The positioned element does not enlarge the body (assuming the body is not positioned itself). So
                     // the overflow:hidden setting on the body is in fact irrelevant, a scroll bar still appears.
+                    //
+                    // ATTN The viewport (documentElement) must be set to overflow: auto. Otherwise, the body doesn't
+                    // retain its overflow setting, and it gets transferred to the viewport instead.
+                    // See http://jsbin.com/japewa/
+                    //
+                    // (This is straightforward to do in CSS, but is treacherous in JS because changing these overflows
+                    // after the page load can be buggy in browsers. Check closely for anomalies if the test fails in
+                    // just a single browser.)
                     f.$el.positionAt( 0, 0 ).width( viewportWidth + 1 );
+                    $documentElement.overflow( "auto" );
                     $body.overflow( "hidden" );
                     expect( $window.hasScrollbar() ).to.eql( { horizontal: true, vertical: false } );
                 } );
@@ -173,7 +232,7 @@
 
                 it( 'when the body content is exactly as wide as the viewport, and the body has left padding (box-sizing: border-box)', function () {
                     // ... and nothing else.
-                    f.applyBorderBox();
+                    f.applyBorderBox( "html" );
                     f.$el.width( viewportWidth );
                     $body.leftPadding( 1 );
                     expect( $window.hasScrollbar() ).to.eql( { horizontal: true, vertical: false } );
@@ -186,7 +245,7 @@
                     expect( $window.hasScrollbar() ).to.eql( { horizontal: true, vertical: false } );
                 } );
 
-                if( $.scrollbarWidth() === 0 ) {
+                if ( $.scrollbarWidth() === 0 ) {
 
                     it( 'when the body is as high as the viewport without scroll bars, and extends a bit beyond it horizontally (in browsers with scroll bar width 0)', function () {
                         // Normally, the horizontal scroll bar would obscure part of the body and force a vertical
@@ -248,26 +307,34 @@
                     expect( $window.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
                 } );
 
-                it( 'when the body content extends beyond the viewport horizontally and vertically, but the body is set to overflow: hidden', function () {
-                    // NB Opera: This test fails (Opera 12.17) because of what looks like a bug in Opera. Is allowed to
-                    // fail in Opera (and Opera only!), then.
-                    f.$el.contentBox( viewportWidth + 1, viewportHeight + 1 );
+                it( 'when the body content extends beyond the viewport horizontally and vertically, but the body is set to overflow: hidden and has a specified size smaller than the viewport', function () {
+                    // ATTN The viewport (documentElement) must be set to overflow: auto. Otherwise, the body doesn't
+                    // retain its overflow setting, and it gets transferred to the viewport instead.
+                    // See http://jsbin.com/japewa/
+                    //
+                    // (This is straightforward to do in CSS, but is treacherous in JS because changing these overflows
+                    // after the page load can be buggy in browsers. Check closely for anomalies if the test fails in
+                    // just a single browser.)
+                    $documentElement.overflow( "auto" );
                     $body.overflow( "hidden" );
+                    $body.contentBox( viewportWidth - 30, viewportHeight - 30 );
+                    f.$el.contentBox( viewportWidth + 1, viewportHeight + 1 );
+
                     expect( $window.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
                 } );
 
-                it( 'when the body content extends beyond the viewport horizontally and vertically, but the documentElement is set to overflow: hidden', function () {
+                it( 'when the body content extends beyond the viewport horizontally and vertically, but the documentElement is set to overflow: hidden (exception: iOS, scroll bars appear)', function () {
                     f.$el.contentBox( viewportWidth + 1, viewportHeight + 1 );
                     $documentElement.overflow( "hidden" );
-                    expect( $window.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
+                    expect( $window.hasScrollbar() ).to.eql( { horizontal: viewportShowsHidden, vertical: viewportShowsHidden } );
                 } );
 
-                it( 'when an element is positioned absolutely and extends beyond the viewport horizontally and vertically, but the documentElement is set to overflow: hidden', function () {
+                it( 'when an element is positioned absolutely and extends beyond the viewport horizontally and vertically, but the documentElement is set to overflow: hidden (exception: iOS, scroll bars appear)', function () {
                     // The body is not positioned and thus is not the offset parent of the element - the documentElement
                     // is.
                     f.$el.contentBox( viewportWidth + 1, viewportHeight + 1 );
                     $documentElement.overflow( "hidden" );
-                    expect( $window.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
+                    expect( $window.hasScrollbar() ).to.eql( { horizontal: viewportShowsHidden, vertical: viewportShowsHidden } );
                 } );
 
                 it( 'when the body content is exactly as wide as the viewport, and the body has a right margin', function () {
@@ -286,7 +353,7 @@
 
                 it( 'when the body content is exactly as wide as the viewport, and the body has right padding (box-sizing: border-box)', function () {
                     // ... and nothing else.
-                    f.applyBorderBox();
+                    f.applyBorderBox( "html" );
                     f.$el.width( viewportWidth );
                     $body.rightPadding( 1 );
                     expect( $window.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
@@ -350,27 +417,244 @@
 
         describe( 'Body tag', function () {
 
-            var $window, $body, viewportWidth, viewportHeight;
+            // These tests require that the overflow setting of the body and the documentElement (viewport) are
+            // modified. That is straightforward to do in CSS as a page is loaded, but it is treacherous in JS
+            // because changing these overflows after the page load is _extremely_ buggy in browsers. Check closely
+            // for anomalies if the test fails in just a single browser.
+
+            var $window, $documentElement, $body, viewportWidth, viewportHeight;
 
             beforeEach( function () {
                 f = Setup.create( "window", f );
 
                 return f.ready.done( function () {
                     $window = $( window );
+                    $documentElement = $( document.documentElement );
                     $body = $( "body" ).contentOnly();
                     viewportWidth = $window.width();
                     viewportHeight = $window.height();
                 } );
             } );
 
-            it( 'When it is called on the body tag, it returns the result for the body tag itself, not the window', function () {
-                // We verify this by fitting the body inside the viewport, so that the viewport does not have scroll
-                // bars. But the body itself has, because we set it to overflow:scroll.
-                $body
-                    .contentBox( viewportWidth - 30, viewportHeight - 30 )
-                    .overflow( "scroll" );
+            describe( 'When called on the body tag, the method returns the result for the body tag itself, not the window', function () {
 
-                expect( $body.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
+                describe( 'When the body is set to overflow: visible and the viewport to overflow: visible', function () {
+
+                    beforeEach( function () {
+                        $documentElement.overflow( "visible" );
+                        $body.overflow( "visible" );
+
+                        f.$el.contentBox( viewportWidth + 1, viewportHeight + 1 );
+                    } );
+
+                    it( 'it does not return scroll bars on the body, even if the content overflows the viewport', function () {
+                        expect( $body.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
+                    } );
+
+                } );
+
+                describe( 'When the body is set to overflow: visible and the viewport to overflow: auto', function () {
+
+                    beforeEach( function () {
+                        $documentElement.overflow( "auto" );
+                        $body
+                            .contentBox( viewportWidth - 30, viewportHeight - 30 )
+                            .overflow( "visible" );
+
+                        f.$el.contentBox( viewportWidth + 1, viewportHeight + 1 );
+                    } );
+
+                    it( 'it does not return scroll bars on the body, even if the body as a fixed size and the content overflows it', function () {
+                        expect( $body.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
+                    } );
+
+                } );
+
+                describe( 'When the body is set to overflow: visible and the viewport to overflow: scroll', function () {
+
+                    beforeEach( function () {
+                        $documentElement.overflow( "scroll" );
+                        $body
+                            .contentBox( viewportWidth - 30, viewportHeight - 30 )
+                            .overflow( "visible" );
+
+                        f.$el.contentBox( viewportWidth + 1, viewportHeight + 1 );
+                    } );
+
+                    it( 'it does not return scroll bars on the body, even if the content overflows both body and viewport', function () {
+                        expect( $body.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
+                    } );
+
+                } );
+
+                describe( 'When the body is set to overflow: auto and the viewport to overflow: visible', function () {
+
+                    beforeEach( function () {
+                        $documentElement.overflow( "visible" );
+                        $body
+                            .contentBox( viewportWidth - 30, viewportHeight - 30 )
+                            .overflow( "auto" );
+
+                        f.$el.contentBox( viewportWidth + 1, viewportHeight + 1 );
+                    } );
+
+                    it( 'it does not return scroll bars on the body, even if the content overflows both body and viewport', function () {
+                        expect( $body.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
+                    } );
+
+                    it( '...but it does for the window', function () {
+                        expect( $window.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
+                    } );
+
+                } );
+
+                describe( 'When the body is set to overflow: scroll and the viewport to overflow: visible', function () {
+
+                    beforeEach( function () {
+                        $documentElement.overflow( "visible" );
+                        $body.overflow( "scroll" );
+                    } );
+
+                    it( 'it does not return scroll bars on the body', function () {
+                        expect( $body.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
+                    } );
+
+                    it( '...but it does for the window', function () {
+                        expect( $window.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
+                    } );
+
+                } );
+
+                describe( 'When the body is set to overflow: hidden and the viewport to overflow: visible', function () {
+
+                    beforeEach( function () {
+                        $documentElement.overflow( "visible" );
+                        $body
+                            .contentBox( viewportWidth - 30, viewportHeight - 30 )
+                            .overflow( "hidden" );
+
+                        f.$el.contentBox( viewportWidth + 1, viewportHeight + 1 );
+                    } );
+
+                    it( 'it does not return scroll bars on the body, even if the content overflows both body and viewport', function () {
+                        expect( $body.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
+                    } );
+
+                    it( '...and not for the window (except in iOS)', function () {
+                        expect( $window.hasScrollbar() ).to.eql( { horizontal: viewportShowsHidden, vertical: viewportShowsHidden } );
+                    } );
+
+                } );
+
+                describe( 'When the body is set to overflow: auto and the viewport to overflow: auto', function () {
+
+                    beforeEach( function () {
+                        $documentElement.overflow( "auto" );
+                        $body
+                            .contentBox( viewportWidth - 30, viewportHeight - 30 )
+                            .overflow( "auto" );
+
+                        f.$el.contentBox( viewportWidth + 1, viewportHeight + 1 );
+                    } );
+
+                    it( 'it returns scroll bars on the body if the content overflows the body', function () {
+                        expect( $body.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
+                    } );
+
+                    it( '...but not for the window, even if the body content is larger than the viewport, as long as the body itself fits inside the viewport', function () {
+                        expect( $window.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
+                    } );
+
+                } );
+
+                describe( 'When the body is set to overflow: auto and the viewport to overflow: scroll', function () {
+
+                    beforeEach( function () {
+                        $documentElement.overflow( "scroll" );
+                        $body
+                            .contentBox( viewportWidth - 30, viewportHeight - 30 )
+                            .overflow( "auto" );
+
+                        f.$el.contentBox( 1, 1 );
+                    } );
+
+                    it( 'it does not return scroll bars on the body if the content fits inside of it', function () {
+                        expect( $body.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
+                    } );
+
+                    it( '...but it does for the window', function () {
+                        expect( $window.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
+                    } );
+
+                } );
+
+                describe( 'When the body is set to overflow: auto and the viewport to overflow: hidden', function () {
+
+                    beforeEach( function () {
+                        $documentElement.overflow( "hidden" );
+                        $body
+                            .contentBox( viewportWidth + 1, viewportHeight + 1 )
+                            .overflow( "auto" );
+
+                        f.$el.contentBox( viewportWidth + 2, viewportHeight + 2 );
+                    } );
+
+                    it( 'it returns scroll bars on the body if the content overflows the body', function () {
+                        expect( $body.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
+                    } );
+
+                    it( '...but it does not for the window, even if the body and its content are larger than the viewport (except in iOS, where scroll bars appear)', function () {
+                        expect( $window.hasScrollbar() ).to.eql( { horizontal: viewportShowsHidden, vertical: viewportShowsHidden } );
+                    } );
+
+                } );
+
+                describe( 'When the body is set to overflow: scroll and the viewport to overflow: auto', function () {
+
+                    beforeEach( function () {
+                        $documentElement.overflow( "auto" );
+                        $body
+                            .contentBox( viewportWidth - 30, viewportHeight - 30 )
+                            .overflow( "scroll" );
+                    } );
+
+                    it( 'it returns scroll bars on the body', function () {
+                        expect( $body.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
+                    } );
+
+                    it( '...but not for the window, even if the body content is larger than the viewport, as long as the body itself fits inside the viewport', function () {
+                        f.$el.contentBox( viewportWidth + 1, viewportHeight + 1 );
+                        expect( $window.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
+                    } );
+
+                } );
+
+                describe( 'When the body is set to overflow: hidden and the viewport to overflow: auto', function () {
+
+                    beforeEach( function () {
+                        $documentElement.overflow( "auto" );
+                        $body
+                            .contentBox( viewportWidth - 30, viewportHeight - 30 )
+                            .overflow( "hidden" );
+
+                        f.$el.contentBox( viewportWidth + 2, viewportHeight + 2 );
+                    } );
+
+                    it( 'it does not return scroll bars on the body, even if the content overflows body and viewport', function () {
+                        expect( $body.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
+                    } );
+
+                    it( '...and not for the window, either, if the body fits inside the viewport', function () {
+                        expect( $window.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
+                    } );
+
+                    it( '...but it returns scroll bars for the window if the body is larger than the viewport', function () {
+                        $body.contentBox( viewportWidth + 1, viewportHeight + 1 );
+                        expect( $window.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
+                    } );
+
+                } );
+
             } );
 
         } );
@@ -472,7 +756,7 @@
                         .overflowX( "hidden" )
                         .overflowY( "auto" );
 
-                    $content.contentBox( containerWidth +1, containerHeight + 1 );
+                    $content.contentBox( containerWidth + 1, containerHeight + 1 );
                     expect( f.$container.hasScrollbar() ).to.eql( { horizontal: false, vertical: true } );
                 } );
 
@@ -581,7 +865,7 @@
                         .overflowX( "auto" )
                         .overflowY( "hidden" );
 
-                    $content.contentBox( containerWidth +1, containerHeight + 1 );
+                    $content.contentBox( containerWidth + 1, containerHeight + 1 );
                     expect( f.$container.hasScrollbar() ).to.eql( { horizontal: true, vertical: false } );
                 } );
 
@@ -730,7 +1014,7 @@
                     f.$container
                         .overflow( "" )
                         .overflowX( "scroll" )
-                        .overflowY( "hidden");
+                        .overflowY( "hidden" );
 
                     expect( f.$container.hasScrollbar() ).to.eql( { horizontal: true, vertical: false } );
                 } );
@@ -739,7 +1023,7 @@
                     f.$container
                         .overflow( "" )
                         .overflowX( "scroll" )
-                        .overflowY( "auto");
+                        .overflowY( "auto" );
 
                     expect( f.$container.hasScrollbar() ).to.eql( { horizontal: true, vertical: false } );
                 } );

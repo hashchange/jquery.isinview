@@ -222,3 +222,14 @@ function testIframeExpansion () {
 
     return result;
 }
+
+/**
+ * Detects if the browser is on iOS. Works for Safari as well as other browsers, say, Chrome on iOS.
+ *
+ * Required for some iOS behaviour which can't be feature-detected in any way.
+ *
+ * @returns {boolean}
+ */
+function isIOS () {
+    return /iPad|iPhone|iPod/g.test( navigator.userAgent );
+}

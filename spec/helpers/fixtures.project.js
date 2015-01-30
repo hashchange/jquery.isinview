@@ -19,6 +19,9 @@
  *     [opts.containerHeight=200]
  *
  * to Setup.create. They are synonyms for opts.windowWidth and opts.WindowHeight and can be used interchangeably.
+ *
+ * @name DOMFixture.$container
+ * @type {jQuery}
  */
 
 
@@ -36,12 +39,21 @@ Setup.orig = {
 
 $.extend ( DOMFixture.prototype, {
 
-    applyBorderBox: function () {
+    /**
+     * Applies `box-sizing: border-box` to fixture.stage, or to an alternative root element (e.g. body). Is inherited by
+     * the descendants of the root element.
+     *
+     * Is cleaned up by cleanDom().
+     *
+     * @param {string} [rootSelector]  the selector of the root element
+     */
+    applyBorderBox: function ( rootSelector ) {
         var f = this;
 
+        rootSelector || ( rootSelector = f.stageSelector );
         f.addCssRules( [
-            f.stageSelector + " { box-sizing: border-box; }",
-            f.stageSelector + " *, " + f.stageSelector + " *:before, " + f.stageSelector + " *:after { box-sizing: inherit; }"
+            rootSelector + " { box-sizing: border-box; }",
+            rootSelector + " *, " + rootSelector + " *:before, " + rootSelector + " *:after { box-sizing: inherit; }"
         ] );
     }
 
@@ -63,30 +75,30 @@ $.extend( Setup.prototype, {
     },
 
     childWindow: function () {
-        var contentReady,
+        var contentReady, allReady,
             f = Setup.orig.childWindow.apply( this );
 
         contentReady = f.ready;
-        f.ready = $.Deferred();
+        f.ready = allReady = $.Deferred();
 
         contentReady.done( function () {
             f.$container = $( f.childWindow );
-            f.ready.resolve();
+            allReady.resolve();
         } );
 
         return f;
     },
 
     iframe: function () {
-        var contentReady,
+        var contentReady, allReady,
             f = Setup.orig.iframe.apply( this );
 
         contentReady = f.ready;
-        f.ready = $.Deferred();
+        f.ready = allReady = $.Deferred();
 
         contentReady.done( function () {
             f.$container = f.$canvas.find( 'iframe' ).eq( 0 );
-            f.ready.resolve();
+            allReady.resolve();
         } );
 
         return f;

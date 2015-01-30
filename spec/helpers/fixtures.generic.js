@@ -126,18 +126,22 @@ $.extend( DOMFixture.prototype, {
     addCssRules: function ( rules ) {
         var f = this,
             $head = $( 'head', f.document ),
-            $styles = $( "<style/>", f.document ),
-            styleEl = $styles[0],
+            styleEl = f.document.createElement( 'style' ),
             styleSheet;
 
-        $styles.appendTo( $head );
+        styleEl.setAttribute( 'type', 'text/css' );
+        // WebKit hack, see http://davidwalsh.name/add-rules-stylesheets
+        styleEl.appendChild( f.document.createTextNode( "" ) );
+
+        $head.append( styleEl );
         styleSheet = styleEl.sheet || styleEl.styleSheet;
 
         if ( ! $.isArray( rules ) ) rules = [ rules ];
         $.each( rules, function ( index, rule ) {
             styleSheet.insertRule( rule, index );
         } );
-        this.addToCleanup( $styles );
+
+        this.addToCleanup( $( styleEl ) );
     },
 
     /**
@@ -429,23 +433,26 @@ $.extend( Setup.prototype, {
  * For restoring the DOM to its initial state, undoing the changes of Setup.create, call fixture.cleanDom() or
  * fixture.shutdown() in afterEach or after.
  *
- * @param {string}     type                                    fixture type (ie, the name of the setup method to be called).
- *                                                             Values: "window", "childWindow", "iframe"
- * @param {DOMFixture} [fixture]                               a fixture to augment or update; if omitted, a new DOMFixture is created.
- * @param {Object}     [opts]
- * @param {number}     [opts.elWidth=50]
- * @param {number}     [opts.elHeight=50]
- * @param {number}     [opts.windowWidth=200]                  width of iframe and child windows, required min-width of global window
- * @param {number}     [opts.windowHeight=200]                 height of iframe and child windows, required min-height of global window
- * @param {boolean}    [opts.createEl=true]                    if false, the stage is created empty
- * @param {boolean}    [opts.hidePreexistingBodyContent]       if set to false, the body content in the _global_ window
- *                                                             is not hidden during the test (default: is hidden unless
- *                                                             the test type is "child window")
+ * @param {string}          type                                    fixture type (ie, the name of the setup method to be called).
+ *                                                                  Values: "window", "childWindow", "iframe"
+ * @param {DOMFixture}      [fixture]                               a fixture to augment or update; if omitted, a new DOMFixture is created.
+ * @param {Object}          [opts]
+ * @param {number}          [opts.elWidth=50]
+ * @param {number}          [opts.elHeight=50]
+ * @param {number}          [opts.windowWidth=200]                  width of iframe and child windows, required min-width of global window
+ * @param {number}          [opts.windowHeight=200]                 height of iframe and child windows, required min-height of global window
+ * @param {boolean}         [opts.createEl=true]                    if false, the stage is created empty
+ * @param {boolean}         [opts.hidePreexistingBodyContent=true]  if set to false, the body content in the _global_ window
+ *                                                                  is not hidden during the test (default: is hidden unless
+ *                                                                  the test type is "child window")
+ * @param {string|string[]} [opts.injectCss]                        adds CSS rules to a style tag placed at the end of the document head. Pass
+ *                                                                  rules as they would appear in the style sheet, e.g. ".foo, #bar { color: red; }".
+ *                                                                  The styles are cleaned up by fixture.cleanDom()
  *
  * @returns {DOMFixture}
  */
 Setup.create = function ( type, fixture, opts ) {
-    var setup;
+    var setup, contentReady, allReady;
 
     opts || ( opts = {} );
     if ( typeof opts.hidePreexistingBodyContent === "undefined" ) opts.hidePreexistingBodyContent = type !== "childWindow";
@@ -457,6 +464,20 @@ Setup.create = function ( type, fixture, opts ) {
     setup = new Setup( fixture, opts );
     setup._alwaysBefore();
 
-    return setup[type]();
+    fixture = setup[type]();
+
+    if ( opts.injectCss ) {
+
+        contentReady = fixture.ready;
+        fixture.ready = allReady = $.Deferred();
+
+        contentReady.done( function () {
+            fixture.addCssRules( opts.injectCss );
+            allReady.resolve();
+        } );
+
+    }
+
+    return fixture;
 };
 
