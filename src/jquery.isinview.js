@@ -3,6 +3,7 @@
 
     var _scrollbarWidth,
         _useGetComputedStyle = !! window.getComputedStyle,          // IE8, my dear, this is for you
+        _isIOS,
         root = window,
         $root = $( window );
 
@@ -724,6 +725,15 @@
      *   "auto". Scroll bars appear when the content overflows the viewport (ie, "auto" behaviour). Hence, this function
      *   will indeed report "auto". Again, the transformation is only manifest in behaviour, not in the computed values.
      *
+     * - In iOS, if the effective overflow setting of the viewport is "hidden", it is ignored and treated as "auto".
+     *   Content can still overflow the viewport, and scroll bars appear as needed.
+     *
+     *   Now, the catch. This behaviour is impossible to feature-detect. The computed values are not at all affected by
+     *   it, and the results reported eg. for clientHeight, offsetHeight, scrollHeight of body and documentElement do
+     *   not differ between Safari on iOS and, say, Chrome. The numbers don't give the behaviour away.
+     *
+     *   So we have to resort to browser sniffing here. It sucks, but there is literally no other option.
+     *
      * NB Additional status properties (see getAppliedOverflows) are always generated here.
      *
      * @param {Object} documentElementProps            hash of documentElement properties (computed values)
@@ -769,6 +779,12 @@
         // window.overflow(X/Y): "visible" actually means "auto" because scroll bars appear as needed; transform
         if ( consolidated.window.overflowX === "visible" ) consolidated.window.overflowX = "auto";
         if ( consolidated.window.overflowY === "visible" ) consolidated.window.overflowY = "auto";
+
+        // In iOS, window.overflow(X/Y): "hidden" actually means "auto"; transform
+        if ( isIOS() ) {
+            if ( consolidated.window.overflowX === "hidden" ) consolidated.window.overflowX = "auto";
+            if ( consolidated.window.overflowY === "hidden" ) consolidated.window.overflowY = "auto";
+        }
 
         // Add the boolean status properties to the result
         consolidated.window = getAppliedOverflows( consolidated.window, true );
@@ -981,6 +997,18 @@
         }
 
         return elemRect;
+    }
+
+    /**
+     * Detects if the browser is on iOS. Works for Safari as well as other browsers, say, Chrome on iOS.
+     *
+     * Required for some iOS behaviour which can't be feature-detected in any way.
+     *
+     * @returns {boolean}
+     */
+    function isIOS () {
+        if ( _isIOS === undefined ) _isIOS = (/iPad|iPhone|iPod/g).test( navigator.userAgent );
+        return _isIOS;
     }
 
     /**
