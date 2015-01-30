@@ -557,11 +557,18 @@
                         f.$el.contentBox( viewportWidth + 1, viewportHeight + 1 );
                     } );
 
-                    it( 'it returns scroll bars on the body if the content overflows the body', function () {
-                        expect( $body.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
-                    } );
+                    if ( $.scrollbarWidth() > 0 ) {
 
-                    it( '...but not for the window, even if the body content is larger than the viewport, as long as the body itself fits inside the viewport', function () {
+                        // In this scenario, body scroll bars can only be detected if the browser scroll bar width is
+                        // not 0. See limitations section in readme.
+
+                        it( 'it returns scroll bars on the body if the content overflows the body', function () {
+                            expect( $body.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
+                        } );
+
+                    }
+
+                    it( 'it does not return scroll bars for the window, even if the body content is larger than the viewport, as long as the body itself fits inside the viewport', function () {
                         expect( $window.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
                     } );
 
@@ -599,11 +606,18 @@
                         f.$el.contentBox( viewportWidth + 2, viewportHeight + 2 );
                     } );
 
-                    it( 'it returns scroll bars on the body if the content overflows the body', function () {
-                        expect( $body.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
-                    } );
+                    if ( $.scrollbarWidth() > 0 ) {
 
-                    it( '...but it does not for the window, even if the body and its content are larger than the viewport (except in iOS, where scroll bars appear)', function () {
+                        // In this scenario, body scroll bars can only be detected if the browser scroll bar width is
+                        // not 0. See limitations section in readme.
+
+                        it( 'it returns scroll bars on the body if the content overflows the body', function () {
+                            expect( $body.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
+                        } );
+
+                    }
+
+                    it( 'it does not return scroll bars for the window, even if the body and its content are larger than the viewport (except in iOS, where scroll bars appear)', function () {
                         expect( $window.hasScrollbar() ).to.eql( { horizontal: viewportShowsHidden, vertical: viewportShowsHidden } );
                     } );
 

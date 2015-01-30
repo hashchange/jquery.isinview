@@ -226,7 +226,7 @@ Please be aware that the method does not allow you to infer the presence of a sc
 - It always returns the default scroll bar width for elements set to `overflow: scroll`. That is because scroll bars appear even if an element doesn't contain content which needs to be scrolled.
 - It returns 0 if there is no scroll bar, but also if there _is_ a scroll bar of width 0, which is the standard behaviour of Safari on the Mac and on iOS.
 
-For the type of elements the method can be called on, and how they are handled, see [`$.fn.hasScrollbar`, above][api-fn.hasScrollbar].
+For the type of elements the method can be called on, and how they are handled, see [`.hasScrollbar()`, above][api-fn.hasScrollbar].
 
 ##### jQuery.scrollbarWidth()
 
@@ -283,6 +283,8 @@ There are also a few limitations with regard to HTML elements and their styles:
 - Containers must not be rotated with a CSS transform. Scaling is ok. (You can do anything with content, including rotation, that's ok). 
 
 - The `<object>` tag is not supported as a container.
+
+In terms of weird edge cases, there is one for [`.hasScrollbar()`][api-fn.hasScrollbar]. If a browser displays scroll bars [of width 0][api-scrollbarWidth] - like those on iOS and Android - and the overflow setting of the documentElement is not "visible", and the overflow of the body is set to "auto", and you take the unusual step of querying the scroll bars [of the body itself][api-fn.hasScrollbar] (as opposed to the window), `.hasScrollbar()` fails to detect them. (You still there?) Just so you know that this won't (and can't) be fixed. 
 
 Finally, the plugin doesn't deal with multiple, nested scrolls yet. But it merely isn't aggregating the results for you. You can call it on each individual container and simply chain the results (with `&&` for boolean tests, or filter chaining).
 

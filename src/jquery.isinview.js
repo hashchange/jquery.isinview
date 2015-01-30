@@ -301,7 +301,15 @@
 
         } else if ( isBody ) {
 
-            // Checking for body scroll bars follows the same logic as checking for window scroll bars.
+            // Checking for body scroll bars.
+            //
+            // body.clientWidth returns the width of the body, minus the scroll bars. We can simply compare it to the
+            // full width, provided that the browser displays scroll bars which take up space.
+            //
+            // By implication, this check DOES NOT work for an effective body overflow of "auto" in browsers which
+            // display scroll bars of width 0. (Affects iOS, other mobile browsers, and Safari on OS X when used without
+            // an attached mouse.) There simply is no reliable, bullet-proof way to determine the width of the body
+            // content, ie the true body scroll width, in those browsers.
             $body = $( body );
             horizontal = bodyProps.overflowScrollX || bodyProps.overflowAutoX && body.clientWidth < $body.width();
             vertical = bodyProps.overflowScrollY || bodyProps.overflowAutoY && body.clientHeight < $body.height();
