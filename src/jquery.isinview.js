@@ -5,7 +5,12 @@
         _useGetComputedStyle = !! window.getComputedStyle,          // IE8, my dear, this is for you
         _isIOS,
         root = window,
-        $root = $( window );
+        $root = $( window ),
+
+        /** @type {function (Document): number}  only use when absolutely necessary, see IIFE comment at bottom */
+        trueDocumentWidth,
+        /** @type {function (Document): number}  only use when absolutely necessary, see IIFE comment at bottom */
+        trueDocumentHeight;
 
 
     /**
@@ -204,7 +209,7 @@
             if ( queryVertical ) vertical = windowProps.overflowScrollY || windowProps.overflowAutoY && documentElement.clientHeight < $document.height();
 
             // Handle body with overflow: hidden
-            if ( bodyProps.overflowHiddenX || bodyProps.overflowHiddenY ) {
+            if ( bodyProps.positioned && bodyProps.overflowHiddenX || bodyProps.overflowHiddenY ) {
                 $.extend( bodyProps, getCss( body, [ "borderTopWidth", "borderLeftWidth", "marginTop", "marginLeft", "marginBottom", "marginRight", "top", "left" ], { toFloat: true } ) );
                 $.extend( windowProps, getCss( documentElement, [ "marginTop", "marginLeft", "borderTopWidth", "borderLeftWidth", "paddingTop", "paddingLeft", "marginBottom", "marginRight", "borderBottomWidth", "borderRightWidth", "paddingBottom", "paddingRight" ], { toFloat: true } ) );
                 bodyRect = getBoundingClientRectCompat( body );
@@ -213,11 +218,11 @@
             // todo extract, at least in parts
             if ( bodyProps.overflowHiddenX ) {
 
-                windowProps.leftOffsets = windowProps.marginLeft + windowProps.borderLeftWidth + windowProps.paddingLeft;
-                windowProps.horizontalOffsets = windowProps.leftOffsets + windowProps.marginRight + windowProps.borderRightWidth + windowProps.paddingRight;
-                bodyProps.horizontalMargins = bodyProps.marginLeft + bodyProps.marginRight;
-
                 if ( bodyProps.positioned ) {
+
+                    windowProps.leftOffsets = windowProps.marginLeft + windowProps.borderLeftWidth + windowProps.paddingLeft;
+                    windowProps.horizontalOffsets = windowProps.leftOffsets + windowProps.marginRight + windowProps.borderRightWidth + windowProps.paddingRight;
+                    bodyProps.horizontalMargins = bodyProps.marginLeft + bodyProps.marginRight;
 
                     // If the body is positioned, it is the offset parent of all content, hence every overflow is hidden.
                     // Scroll bars would only appear if
@@ -240,39 +245,28 @@
                     }
 
                 } else {
-                    bodyProps.scrollWidth = body.scrollWidth;
-                    windowProps.scrollWidth = documentElement.scrollWidth;
-                    bodyProps.offsetRight = bodyProps.marginLeft + bodyRect.width + bodyProps.marginRight;
-                    // Testing if the document is smaller or equal to the body (it could be larger, e.g. because of
-                    // positioned content). If so, the document cannot cause scroll bars. They would only appear if
+                    // If the body is not positioned, we have to make an expensive, unwelcome call to trueDocumentWidth()
+                    // (see comment at IIFE, at the bottom of the file). There is no other, implicit way to figure out
+                    // if scroll bars appear (at least not one that works cross-browser).
                     //
-                    // - the window (documentElement) is set to overflow: scroll
-                    // - the window is set to overflow: auto, and the body itself, plus padding etc on body and window,
-                    //   does not fit into the viewport.
-                    //
-                    // Condition 1 captures: Chrome, Chrome on Android, Safari on OS X, iOS, Opera;
-                    // Condition 2 captures: FF, IE9+
-                    // Browser behaviour can be tested/investigated with http://jsbin.com/vofuba/9/
-                    bodyProps.definesRightDocumentEdge = bodyProps.scrollWidth === windowProps.scrollWidth || bodyProps.scrollWidth + bodyProps.borderLeftWidth + bodyProps.marginLeft === windowProps.scrollWidth;
-                    bodyProps.rightDocumentEdge = bodyRect.width + bodyProps.horizontalMargins + windowProps.horizontalOffsets;
+                    // The impact is not quite that bad, though, because the window and body overflows already match
+                    // those required for the feature detection in trueDocumentWidth/Height. So the overflows don't have
+                    // to be switched around, which is potentially buggy and could cause display issues in some browsers.
+                    bodyProps.rightDocumentEdge = trueDocumentWidth( _document );
                 }
 
-                if ( bodyProps.definesRightDocumentEdge ) {
-                     horizontal = windowProps.overflowScrollX || windowProps.overflowAutoX && bodyProps.rightDocumentEdge > documentElement.clientWidth;
-                }
+                horizontal = windowProps.overflowScrollX || windowProps.overflowAutoX && bodyProps.rightDocumentEdge > documentElement.clientWidth;
 
             }
 
             // See above, bodyOverflowHiddenX branch, for documentation.
             if ( bodyProps.overflowHiddenY ) {
 
-                windowProps.topOffsets = windowProps.marginTop + windowProps.borderTopWidth + windowProps.paddingTop;
-                windowProps.verticalOffsets = windowProps.topOffsets + windowProps.marginBottom + windowProps.borderBottomWidth + windowProps.paddingBottom;
-                bodyProps.verticalMargins = bodyProps.marginTop + bodyProps.marginBottom;
-
                 if ( bodyProps.positioned ) {
 
-                    bodyProps.definesBottomDocumentEdge = true;
+                    windowProps.topOffsets = windowProps.marginTop + windowProps.borderTopWidth + windowProps.paddingTop;
+                    windowProps.verticalOffsets = windowProps.topOffsets + windowProps.marginBottom + windowProps.borderBottomWidth + windowProps.paddingBottom;
+                    bodyProps.verticalMargins = bodyProps.marginTop + bodyProps.marginBottom;
 
                     if ( bodyProps.position === "relative" ) {
                         bodyProps.bottomDocumentEdge = Math.max(
@@ -285,18 +279,12 @@
                         // Position "absolute"
                         bodyProps.bottomDocumentEdge = bodyProps.top + bodyRect.height + bodyProps.verticalMargins;
                     }
+
                 } else {
-                    bodyProps.scrollHeight = body.scrollHeight;
-                    windowProps.scrollHeight = documentElement.scrollHeight;
-
-                    bodyProps.definesBottomDocumentEdge = bodyProps.scrollHeight === windowProps.scrollHeight || bodyProps.scrollHeight + bodyProps.borderTopWidth + bodyProps.marginTop === windowProps.scrollHeight;
-                    bodyProps.bottomDocumentEdge = bodyRect.height + bodyProps.verticalMargins + windowProps.verticalOffsets;
+                    bodyProps.bottomDocumentEdge =  trueDocumentHeight( _document );
                 }
 
-                if ( bodyProps.definesBottomDocumentEdge ) {
-                    vertical = windowProps.overflowScrollY || windowProps.overflowAutoY && bodyProps.bottomDocumentEdge > documentElement.clientHeight;
-                }
-
+                vertical = windowProps.overflowScrollY || windowProps.overflowAutoY && bodyProps.bottomDocumentEdge > documentElement.clientHeight;
             }
 
         } else if ( isBody ) {
@@ -1055,6 +1043,112 @@
         // Done as in the Lodash compatibility build
         return typeof value === 'string' || value && typeof value === 'object' && Object.prototype.toString.call(value) === '[object String]' || false;
     }
+
+    // IIFE generating the trueDocumentWidth and trueDocumentHeight functions.
+    //
+    // These functions need to run a feature detection which is potentially slow and tricky. In its course, the body and
+    // documentElement overflow must not be "visible", so they may be altered and restored. The body width is also
+    // expanded dramatically. That should not be taken lightly for a number of reasons:
+    //
+    // - It might involve quite a substantial, slow repaint.
+    // - Worse, if some other code responds to resize events of the body or some content, those handlers may fire (and
+    //   twice, at least).
+    // - And even worse yet, the overflow settings of body and documentElement (window) might have to be changed, and
+    //   then changed back, during the feature test. (See testDocumentScroll(), below, for details.) Altering these
+    //   overflows is potentially buggy and could cause display issues in some browsers.
+    //
+    // The feature detection needs to run only once, and it does so when either trueDocumentWidth or trueDocumentHeight
+    // is invoked for the first time. Still, calls to these functions should be avoided if at all possible. Only use
+    // them if there really is no other choice.
+
+    (function () {
+        var documentSizeQuery;
+
+        trueDocumentWidth = function ( document ) {
+            if ( documentSizeQuery === undefined ) testDocumentScroll();
+            return document[documentSizeQuery.elementName][documentSizeQuery.propertyPrefix + "Width"];
+        };
+
+        trueDocumentHeight = function ( document ) {
+            if ( documentSizeQuery === undefined ) testDocumentScroll();
+            return document[documentSizeQuery.elementName][documentSizeQuery.propertyPrefix + "Height"];
+        };
+
+        /**
+         * Detects which call to use for a document size query.
+         *
+         * We can't test directly which call to use (at least not with an even worse amount of intervention than is
+         * already the case). But we can work by exclusion.
+         *
+         * In Chrome (desktop and mobile), Safari (also iOS), and Opera, body.scrollWidth returns the true document
+         * width. In Firefox and IE, body.scrollWidth responds to the body content size instead. In those browsers, true
+         * document width is returned by document.documentElement.scrollWidth.
+         *
+         * So we test the behaviour of body.scrollWidth by manipulating the body size, while keeping the document size
+         * constant.
+         *
+         * - We prepare for the test by making sure the body does not display its overflow.
+         * - Then we inject a small test element into the body and give it a relative position far outside the viewport.
+         *
+         * The body size is expanded, but the document size remains unaffected because the body hides the overflowing
+         * test element (either outright, or by putting it in a hidden part of the scroll pane). Then we check if
+         * body.scrollWidth has responded to the change. From that, we infer the right property for document width.
+         */
+        function testDocumentScroll () {
+
+            var testEl, initialScrollWidth, responds,
+                $documentElement = $( document.documentElement ),
+                body = document.body,
+                $body = $( body ),
+                documentElementOverflowX = ( $documentElement.css( "overflowX" ) || $documentElement.css ( "overflow" ) || "visible" ).toLowerCase(),
+                bodyOverflowX = ( $body.css( "overflowX" ) || $body.css ( "overflow" ) || "visible" ).toLowerCase(),
+                modifyBody = bodyOverflowX !== "hidden",
+                modifyWindow = documentElementOverflowX === "visible";
+
+            // Create a test element which will be used to to expand the body content way to the right.
+            testEl = document.createElement( "div" );
+            $( testEl )
+                .css( {
+                    width: "1px",
+                    height: "1px",
+                    position: "relative",
+                    top: 0,
+                    left: "32000px"
+                } );
+
+            // Make sure that the body (but not the window) hides its overflow
+            if ( modifyWindow ) $documentElement.css( { overflowX: "auto" } );
+            if ( modifyBody ) $body.css( { overflowX: "hidden" } );
+
+            // Inject the test element, then test if the body.scrollWidth property responds
+            initialScrollWidth = body.scrollWidth;
+            body.appendChild( testEl );
+            responds = initialScrollWidth !== body.scrollWidth;
+            body.removeChild( testEl );
+
+            // Restore the overflow settings for window and body
+            if ( modifyWindow ) $documentElement.css( { overflowX: documentElementOverflowX } );
+            if ( modifyBody ) $body.css( { overflowX: bodyOverflowX } );
+
+            // If body.scrollWidth responded, it reacts to body content size, not document size. Default to
+            // ddE.scrollWidth. If it did not react, however, it is linked to the (unchanged) document size.
+            //
+            // (If more choices arise (IE9?), add more tests above)
+            if ( responds ) {
+                documentSizeQuery = {
+                    elementName: "documentElement",
+                    propertyPrefix: "scroll"
+                };
+            } else {
+                documentSizeQuery = {
+                    elementName: "body",
+                    propertyPrefix: "scroll"
+                };
+            }
+
+        }
+
+    })();
 
     /**
      * Custom types.
