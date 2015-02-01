@@ -390,6 +390,7 @@
 
         if ( _scrollbarWidth === undefined ) {
 
+            // todo simplify, remove the child, set parent to overflow:scroll, measure parent.offsetWidth - parent.clientWidth (rename parent to testEl); see Modernizr approach at https://github.com/Modernizr/Modernizr/blob/7bf3046835e4c97e1d5e98f6933288b80e8e7cb8/feature-detects/hiddenscroll.js
             $child = $( document.createElement( "div" ) ).css( { margin: 0, padding: 0, borderStyle: "none" } );
             $parent = $( document.createElement( "div" ) )
                 .css( {
