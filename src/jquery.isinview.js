@@ -268,20 +268,30 @@
 
         var bodyRect,
             overflowPropNames = [], bodyOverflowPropNames = [],
-            result = {};
+            result = {},
+            doneX = ! query.getHorizontal,
+            doneY = ! query.getVertical;
 
-        // The default case, body overflow is not hidden
-        if ( query.getHorizontal && ! bodyProps.overflowHiddenX ) result.horizontal = windowProps.overflowScrollX || windowProps.overflowAutoX && context.documentElement.clientWidth < context.$document.width();
-        if ( query.getVertical && ! bodyProps.overflowHiddenY ) result.vertical = windowProps.overflowScrollY || windowProps.overflowAutoY && context.documentElement.clientHeight < context.$document.height();
+        // Handle the trivial case first: window set to overflow: scroll.
+        if ( ! doneX && windowProps.overflowScrollX ) result.horizontal = doneX = true;
+        if ( ! doneY && windowProps.overflowScrollY ) result.vertical = doneY = true;
 
-        // The body hides its overflow. From here on out, we only deal with the implications this special case.
-        if ( bodyProps.positioned && ( query.getHorizontal && bodyProps.overflowHiddenX ) || ( query.getVertical && bodyProps.overflowHiddenY ) ) {
-            if ( query.getHorizontal && bodyProps.overflowHiddenX ) {
+        bodyProps.obscuresOverflowX = !bodyProps.overflowVisibleX;
+        bodyProps.obscuresOverflowY = !bodyProps.overflowVisibleY;
+
+        // The default case: body overflow affects document size (not hidden or tucked away in a scrollable area)
+        if ( ! doneX && ! bodyProps.obscuresOverflowX ) result.horizontal = windowProps.overflowAutoX && context.documentElement.clientWidth < context.$document.width();
+        if ( ! doneY && ! bodyProps.obscuresOverflowY ) result.vertical = windowProps.overflowAutoY && context.documentElement.clientHeight < context.$document.height();
+
+        // The body obscures its overflow, the document is not enlarged by it. From here on out, we only deal with the
+        // implications this special case.
+        if ( bodyProps.positioned && ( ! doneX && bodyProps.obscuresOverflowX ) || ( ! doneY && bodyProps.obscuresOverflowY ) ) {
+            if ( ! doneX && bodyProps.obscuresOverflowX ) {
                 overflowPropNames.push( "marginLeft", "borderLeftWidth", "paddingLeft", "marginRight", "borderRightWidth", "paddingRight" );
                 bodyOverflowPropNames.push( "left", "marginLeft", "marginRight" );
             }
 
-            if ( query.getVertical && bodyProps.overflowHiddenY ) {
+            if ( ! doneY && bodyProps.obscuresOverflowY ) {
                 overflowPropNames.push( "marginTop", "borderTopWidth", "paddingTop", "marginBottom", "borderBottomWidth", "paddingBottom" );
                 bodyOverflowPropNames.push( "top", "marginTop", "marginBottom" );
             }
@@ -291,7 +301,7 @@
             bodyRect = getBoundingClientRectCompat( context.body );
         }
 
-        if ( query.getHorizontal && bodyProps.overflowHiddenX ) {
+        if ( ! doneX && bodyProps.obscuresOverflowX ) {
 
             if ( bodyProps.positioned ) {
 
@@ -299,10 +309,10 @@
                 windowProps.horizontalOffsets = windowProps.leftOffsets + windowProps.marginRight + windowProps.borderRightWidth + windowProps.paddingRight;
                 bodyProps.horizontalMargins = bodyProps.marginLeft + bodyProps.marginRight;
 
-                // If the body is positioned, it is the offset parent of all content, hence every overflow is hidden.
+                // If the body is positioned, it is the offset parent of all content, hence every overflow is obscured.
                 // Scroll bars would only appear if
                 //
-                // - the window (documentElement) is set to overflow: scroll
+                // - the window (documentElement) is set to overflow: scroll - we have already handled that case
                 // - the window is set to overflow: auto, and the body itself, plus padding etc on body and window,
                 //   does not fit into the viewport.
                 bodyProps.definesRightDocumentEdge = true;
@@ -335,7 +345,7 @@
         }
 
         // See above, bodyOverflowHiddenX branch, for documentation.
-        if ( query.getVertical && bodyProps.overflowHiddenY ) {
+        if ( ! doneY && bodyProps.obscuresOverflowY ) {
 
             if ( bodyProps.positioned ) {
 
