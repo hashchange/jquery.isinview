@@ -289,8 +289,8 @@
         bodyProps.obscuresOverflowY = !bodyProps.overflowVisibleY;
 
         // The default case: body overflow affects document size (not hidden or tucked away in a scrollable area)
-        if ( ! doneX && ! bodyProps.obscuresOverflowX ) result.horizontal = windowProps.overflowAutoX && context.documentElement.clientWidth < context.$document.width();
-        if ( ! doneY && ! bodyProps.obscuresOverflowY ) result.vertical = windowProps.overflowAutoY && context.documentElement.clientHeight < context.$document.height();
+        if ( ! doneX && ! bodyProps.obscuresOverflowX ) bodyProps.rightDocumentEdge = trueDocumentWidth( context.document );
+        if ( ! doneY && ! bodyProps.obscuresOverflowY ) bodyProps.bottomDocumentEdge = trueDocumentHeight( context.document );
 
         // The body obscures its overflow, the document is not enlarged by it. From here on out, we only deal with the
         // implications this special case.
@@ -349,8 +349,6 @@
                 bodyProps.rightDocumentEdge = trueDocumentWidth( context.document );
             }
 
-            result.horizontal = windowProps.overflowScrollX || windowProps.overflowAutoX && bodyProps.rightDocumentEdge > context.documentElement.clientWidth;
-
         }
 
         // See above, bodyOverflowHiddenX branch, for documentation.
@@ -378,8 +376,10 @@
                 bodyProps.bottomDocumentEdge =  trueDocumentHeight( context.document );
             }
 
-            result.vertical = windowProps.overflowScrollY || windowProps.overflowAutoY && bodyProps.bottomDocumentEdge > context.documentElement.clientHeight;
         }
+
+        if ( ! doneX ) result.horizontal = windowProps.overflowAutoX && context.documentElement.clientWidth < bodyProps.rightDocumentEdge;
+        if ( ! doneY ) result.vertical = windowProps.overflowAutoY && context.documentElement.clientHeight < bodyProps.bottomDocumentEdge;
 
         return result;
 
