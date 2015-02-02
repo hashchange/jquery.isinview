@@ -7,9 +7,18 @@
         root = window,
         $root = $( window ),
 
-        /** @type {function (Document): number}  only use when absolutely necessary, see IIFE comment at bottom */
+        /**
+         * Returns the true document width, even for edge cases, as opposed to the rough guess $( document ).width()
+         * provides. A feature detection is run the first time trueDocumentWidth or trueDocumentHeight is called. See
+         * the IIFE at the bottom for details.
+         *
+         * @type {function (Document): number} */
         trueDocumentWidth,
-        /** @type {function (Document): number}  only use when absolutely necessary, see IIFE comment at bottom */
+
+        /**
+         * Returns the true document height.
+         *
+         * @type {function (Document): number} */
         trueDocumentHeight;
 
 
@@ -1102,43 +1111,47 @@
 
     // IIFE generating the trueDocumentWidth and trueDocumentHeight functions.
     //
-    // These functions need to run a feature detection which is potentially slow and tricky. In its course, the body and
-    // documentElement overflow must not be "visible", so they may be altered and restored. The body width is also
-    // expanded dramatically. That should not be taken lightly for a number of reasons:
-    //
-    // - It might involve quite a substantial, slow repaint.
-    // - Worse, if some other code responds to resize events of the body or some content, those handlers may fire (and
-    //   twice, at least).
-    // - And even worse yet, the overflow settings of body and documentElement (window) might have to be changed, and
-    //   then changed back, during the feature test. (See testDocumentScroll(), below, for details.) Altering these
-    //   overflows is potentially buggy and could cause display issues in some browsers.
-    //
-    // The feature detection needs to run only once, and it does so when either trueDocumentWidth or trueDocumentHeight
-    // is invoked for the first time. Still, calls to these functions should be avoided if at all possible. Only use
-    // them if there really is no other choice.
+    // These functions need to run a feature detection which requires insertion of an iframe. The body element in the
+    // main document must be available when that happens (ie, the opening body tag must have been parsed). For that
+    // reason, the detection does not run up front - after all, the code might be loaded and run while parsing the head.
+    // Instead, detection happens when either trueDocumentWidth or trueDocumentHeight is invoked for the first time.
+    // Given their purpose, they won't be called until after the opening body tag has been parsed.
 
     (function () {
-        var documentSizeQuery;
+        var elementNameForDocSizeQuery;
 
         trueDocumentWidth = function ( document ) {
-            if ( documentSizeQuery === undefined ) testDocumentScroll();
-            return document[documentSizeQuery.elementName][documentSizeQuery.propertyPrefix + "Width"];
+            if ( elementNameForDocSizeQuery === undefined ) testDocumentScroll();
+            return document[elementNameForDocSizeQuery].scrollWidth;
         };
 
         trueDocumentHeight = function ( document ) {
-            if ( documentSizeQuery === undefined ) testDocumentScroll();
-            return document[documentSizeQuery.elementName][documentSizeQuery.propertyPrefix + "Height"];
+            if ( elementNameForDocSizeQuery === undefined ) testDocumentScroll();
+            return  document[elementNameForDocSizeQuery].scrollHeight;
         };
 
         /**
-         * Detects which call to use for a document size query.
+         * Detects which element to use for a document size query (body or documentElement).
+         *
+         * Sandbox
+         * -------
+         *
+         * The detection is sandboxed in an iframe element created for the purpose. If the iframe window can't be
+         * accessed because of some obscure policy restriction or browser bug, the main window and document is used
+         * as a fallback.
+         *
+         * The test is designed to minimize the visual and rendering impact in the test window, in case the fallback
+         * should ever be used.
+         *
+         * Test method
+         * -----------
          *
          * We can't test directly which call to use (at least not with an even worse amount of intervention than is
-         * already the case). But we can work by exclusion.
+         * already the case, which matters if the iframe is not accessible). But we can work by exclusion.
          *
          * In Chrome (desktop and mobile), Safari (also iOS), and Opera, body.scrollWidth returns the true document
-         * width. In Firefox and IE, body.scrollWidth responds to the body content size instead. In those browsers, true
-         * document width is returned by document.documentElement.scrollWidth.
+         * width. In Firefox and IE, body.scrollWidth responds to the body content size instead. In those browsers,
+         * true document width is returned by document.documentElement.scrollWidth.
          *
          * So we test the behaviour of body.scrollWidth by manipulating the body size, while keeping the document size
          * constant.
@@ -1148,60 +1161,74 @@
          *
          * The body size is expanded, but the document size remains unaffected because the body hides the overflowing
          * test element (either outright, or by putting it in a hidden part of the scroll pane). Then we check if
-         * body.scrollWidth has responded to the change. From that, we infer the right property for document width.
+         * body.scrollWidth has responded to the change. From that, we infer the right element to use for a document
+         * width query.
+         *
+         * The function does not return anything. It sets the elementNameForDocSizeQuery in the closure instead.
          */
         function testDocumentScroll () {
 
-            var testEl, initialScrollWidth, responds,
-                $documentElement = $( document.documentElement ),
-                body = document.body,
-                $body = $( body ),
-                documentElementOverflowX = ( $documentElement.css( "overflowX" ) || $documentElement.css ( "overflow" ) || "visible" ).toLowerCase(),
-                bodyOverflowX = ( $body.css( "overflowX" ) || $body.css ( "overflow" ) || "visible" ).toLowerCase(),
+            var iframe = createTestIframe(),
+                _document = iframe && iframe.contentDocument || document,
+                _testEl, initialScrollWidth, responds,
+                _$documentElement = $( _document.documentElement ),
+                _body = _document.body,
+                _$body = $( _body ),
+                documentElementOverflowX = ( _$documentElement.css( "overflowX" ) || _$documentElement.css ( "overflow" ) || "visible" ).toLowerCase(),
+                bodyOverflowX = ( _$body.css( "overflowX" ) || _$body.css ( "overflow" ) || "visible" ).toLowerCase(),
                 modifyBody = bodyOverflowX !== "hidden",
                 modifyWindow = documentElementOverflowX === "visible";
 
             // Create a test element which will be used to to expand the body content way to the right.
-            testEl = document.createElement( "div" );
-            $( testEl )
-                .css( {
-                    width: "1px",
-                    height: "1px",
-                    position: "relative",
-                    top: 0,
-                    left: "32000px"
-                } );
+            _testEl = _document.createElement( "div" );
+            _testEl.style.cssText = "width: 1px; height: 1px; position: relative; top: 0px; left: 32000px;";
 
             // Make sure that the body (but not the window) hides its overflow
-            if ( modifyWindow ) $documentElement.css( { overflowX: "auto" } );
-            if ( modifyBody ) $body.css( { overflowX: "hidden" } );
+            if ( modifyWindow ) _$documentElement.css( { overflowX: "auto" } );
+            if ( modifyBody ) _$body.css( { overflowX: "hidden" } );
 
             // Inject the test element, then test if the body.scrollWidth property responds
-            initialScrollWidth = body.scrollWidth;
-            body.appendChild( testEl );
-            responds = initialScrollWidth !== body.scrollWidth;
-            body.removeChild( testEl );
+            initialScrollWidth = _body.scrollWidth;
+            _body.appendChild( _testEl );
+            responds = initialScrollWidth !== _body.scrollWidth;
+            _body.removeChild( _testEl );
 
             // Restore the overflow settings for window and body
-            if ( modifyWindow ) $documentElement.css( { overflowX: documentElementOverflowX } );
-            if ( modifyBody ) $body.css( { overflowX: bodyOverflowX } );
+            if ( modifyWindow ) _$documentElement.css( { overflowX: documentElementOverflowX } );
+            if ( modifyBody ) _$body.css( { overflowX: bodyOverflowX } );
 
             // If body.scrollWidth responded, it reacts to body content size, not document size. Default to
             // ddE.scrollWidth. If it did not react, however, it is linked to the (unchanged) document size.
-            //
-            // (If more choices arise (IE9?), add more tests above)
-            if ( responds ) {
-                documentSizeQuery = {
-                    elementName: "documentElement",
-                    propertyPrefix: "scroll"
-                };
-            } else {
-                documentSizeQuery = {
-                    elementName: "body",
-                    propertyPrefix: "scroll"
-                };
-            }
+            elementNameForDocSizeQuery = responds ? "documentElement" : "body";
 
+            document.body.removeChild( iframe );
+
+        }
+
+        /**
+         * Creates an iframe document with an HTML5 doctype and UTF-8 encoding and positions it off screen. Window size
+         * is 500px x 500px. Body and window (document element) are set to overflow: hidden.
+         *
+         * In case the content document of the iframe can't be accessed for some reason, the function returns undefined.
+         * This is unlikely to ever happen, though.
+         *
+         * @returns {HTMLIFrameElement|undefined}
+         */
+        function createTestIframe () {
+            var iframe = document.createElement( "iframe" ),
+                body = document.body;
+
+            iframe.style.cssText = "position: absolute; top: -600px; left: -600px; width: 500px; height: 500px; margin: 0px; padding: 0px; border: none;";
+            iframe.frameborder = "0";
+
+            body.appendChild( iframe );
+            iframe.src = 'about:blank';
+
+            if ( ! iframe.contentDocument ) return;
+
+            iframe.contentDocument.write( '<!DOCTYPE html><html><head><meta charset="UTF-8"><title></title><style type="text/css">html, body { overflow: hidden; }</style></head><body></body></html>' );
+
+            return iframe;
         }
 
     })();
