@@ -44,12 +44,12 @@
             $el = $( '<div/>' ).contentBox( 50, 50 ).contentOnly();
             $container = $( '<div id="' + containerId + '"/>' ).append( $el ).contentOnly();
 
-            $containerIframe = $( '<iframe id="' + iframeId + '"/>' ).contentOnly();
-            $testStage = $( '<div id="' + testStageId + '"/>' ).append( $container, $containerIframe ).prependTo( 'body' ).contentOnly();
-            
-            // NB The default document content (e.g., the body) in an iframe only gets created after the iframe is added
-            // to the DOM.
+            $testStage = $( '<div id="' + testStageId + '"/>' ).append( $container ).prependTo( document.body ).contentOnly();
+
+            // NB The iframe content document can only be created if the parent is already inserted into the DOM.
+            $containerIframe = $( createIframe( { parent: $testStage } ) ).attr( { id: iframeId } ).contentOnly();
             iframeDocument = $containerIframe[0].contentDocument;
+
             $elInIframe = $( '<div/>', iframeDocument ).contentBox( 50, 50 ).contentOnly();
             $( iframeDocument.body ).append( $elInIframe ).contentOnly();
 

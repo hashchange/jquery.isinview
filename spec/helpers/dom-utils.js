@@ -67,32 +67,51 @@ function createChildWindow ( readyDfd, size ) {
 }
 
 /**
+ * Creates an iframe with an HTML5 doctype and UTF-8 encoding. Appends it to the body, or to another specified parent
+ * element. Alternatively, the iframe can be prepended to the parent.
+ *
+ * @param   {Object}             [opts]
+ * @param   {HTMLElement|jQuery} [opts.parent=document.body]  the parent element to which the iframe is appended
+ * @param   {boolean}            [opts.prepend=false]         if true, the iframe gets prepended to the parent, rather than appended
+ * @returns {HTMLIFrameElement}
+ */
+function createIframe ( opts ) {
+    var parent = ( opts && opts.parent ) ? ( varExists( $ ) && opts.parent instanceof $ ) ? opts.parent[0] : opts.parent : document.body,
+        _document = parent.ownerDocument,
+        iframe = _document.createElement( "iframe" );
+
+    iframe.frameborder = "0";
+
+    if ( opts && opts.prepend ) {
+        parent.insertBefore( iframe, parent.firstChild );
+    } else {
+        parent.appendChild( iframe );
+    }
+
+    iframe.src = 'about:blank';
+    createIframeDocument( iframe );
+
+    return iframe;
+}
+
+/**
  * Creates an iframe document with an HTML5 doctype and UTF-8 encoding.
  *
- * The iframe element MUST have been appended to the DOM by the time this function is called. A document inside an
- * iframe can only be created after the iframe is added to the DOM.
- *
- * Returns a jQuery deferred if jQuery is installed. Optionally accepts an external jQuery deferred to act on, which is
- * then returned instead. The deferred is resolved when the document in the iframe is ready.
+ * The iframe element MUST have been appended to the DOM by the time this function is called, and it must be a
+ * descendant of the body element. A document inside an iframe can only be created when these conditions are met.
  *
  * @param   {HTMLIFrameElement|jQuery}  iframe
- * @param   {jQuery.Deferred}           [readyDfd]
+ * @returns {Document}
  */
-function createIframeDocument ( iframe, readyDfd ) {
-    var jqAvailable = varExists( $ );
+function createIframeDocument ( iframe ) {
+    if ( varExists( $ ) && iframe instanceof $ ) iframe = iframe[0];
 
-    readyDfd || ( readyDfd = jqAvailable && $.Deferred() );
-
-    if ( jqAvailable && iframe instanceof $ ) iframe = iframe[0];
-    if ( ! iframe.contentDocument ) throw new Error( "Cannot access the iframe content document. Make sure the iframe has already been inserted into the DOM at this point. Also, check for cross-domain policy restrictions." );
+    if ( ! iframe.ownerDocument.body.contains( iframe ) ) throw new Error( "The iframe has not been appended to the DOM, or is not a descendant of the body element. Can't create an iframe content document." );
+    if ( ! iframe.contentDocument ) throw new Error( "Cannot access the iframe content document. Check for cross-domain policy restrictions." );
 
     iframe.contentDocument.write( '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title></title>\n</head>\n<body>\n</body>\n</html>' );
 
-    if ( readyDfd ) {
-        $( iframe.contentDocument ).ready( readyDfd.resolve );
-    }
-
-    return readyDfd;
+    return iframe.contentDocument;
 }
 
 /**
@@ -187,40 +206,27 @@ function validateWindowSize ( expected, opts ) {
  * Feature-tests that an iframe expands to show its content, even if given an explicit width and height. This is the
  * case on iOS.
  *
- * ATTN The result is returned async! The method returns an object (!) with the result.ready property signalling that
- * the test is complete, and the test result stored in result.expands.
- *
  * For some background on expanding iframes in iOS, see
  * http://dev.magnolia-cms.com/blog/2012/05/strategies-for-the-iframe-on-the-ipad-problem/
  *
- * @returns {{ready: jQuery.Deferred, expands: boolean}}
+ * @returns {boolean}
  */
-function testIframeExpansion () {
-    var $iframe, $iframeReady, result = {};
+function testIframeExpands () {
+    var _document, _documentElement, expands,
+        iframe = createIframe();
 
-    if ( !varExists( $ ) ) throw new Error( "This method uses jQuery, but the $ variable is not available" );
+    iframe.style.cssText = "width: 50px; height: 50px; padding: 0px; border: none; margin: 0px;";
 
-    result.ready = $.Deferred();
+    _document = iframe.contentDocument;
+    _documentElement = _document.documentElement;
 
-    $iframe = $( "<iframe/>" ).css( {
-        width: "50px",
-        height: "50px",
-        padding: "0",
-        border: "none",
-        margin: "0"
-    } ).appendTo( "body", document );
+    _document.body.style.cssText = "width: 100px; height: 100px;";
 
-    $iframeReady = createIframeDocument( $iframe );
-    $iframeReady.done( function () {
-        var iframe = $iframe[0],
-            $iframeWindow = $( iframe.contentWindow );
-        $( iframe.contentDocument.body ).width( 100 ).height( 100 );
-        result.expands = $iframeWindow.width() > 50 || $iframeWindow.height() > 50;
-        $iframe.remove();
-        result.ready.resolve();
-    } );
+    expands = parseFloat( _documentElement.clientWidth ) > 50 || parseFloat( _documentElement.clientHeight ) > 50;
 
-    return result;
+    document.body.removeChild( iframe );
+
+    return expands;
 }
 
 /**

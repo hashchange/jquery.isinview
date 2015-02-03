@@ -90,17 +90,9 @@ $.extend( Setup.prototype, {
     },
 
     iframe: function () {
-        var contentReady, allReady,
-            f = Setup.orig.iframe.apply( this );
+        var f = Setup.orig.iframe.apply( this );
 
-        contentReady = f.ready;
-        f.ready = allReady = $.Deferred();
-
-        contentReady.done( function () {
-            f.$container = f.$canvas.find( 'iframe' ).eq( 0 );
-            allReady.resolve();
-        } );
-
+        f.$container = f.$canvas.find( 'iframe' ).eq( 0 );
         return f;
     },
 

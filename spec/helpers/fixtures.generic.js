@@ -305,42 +305,30 @@ $.extend( Setup.prototype, {
     iframe: function () {
 
         var f = this.fixture,
-            defaults = this,
-            contentReady = $.Deferred(),
 
-            $iframe = $( '<iframe/>' )
+            iframe = createIframe( { parent: f.$canvas, prepend: true } ),
+            $iframe = $( iframe )
                 .contentOnly()
-                .contentBox( this.windowWidth, this.windowHeight )
-                .prependTo( f.$canvas );
+                .contentBox( this.windowWidth, this.windowHeight );
 
-        createIframeDocument( $iframe ).done( function () {
-            // No need to re-test the iframe expansion feature if there already is a result
-            var iframeExpansionTest =
-                isUndefined( f.iframeExpands ) ?
-                testIframeExpansion() :
-                { ready: $.Deferred().resolve(), expands: f.iframeExpands };
+        f.window = iframe.contentWindow;
+        f.document = iframe.contentDocument;
+        $( f.document ).find( "body, html" ).contentOnly();
 
-            f.window = $iframe[0].contentWindow;
-            f.document = $iframe[0].contentDocument;
-            $( f.document ).find( "body, html" ).contentOnly();
+        f.stageSelector = "body";
+        f.$stage = $( f.document.body )
+            .contentOnly();
 
-            f.stageSelector = "body";
-            f.$stage = $( f.document.body )
-                .contentOnly();
+        if ( this.createEl ) f.$el = $( '<div/>', f.document )
+            .contentOnly()
+            .contentBox( this.elWidth, this.elHeight )
+            .appendTo( f.$stage );
 
-            if ( defaults.createEl ) f.$el = $( '<div/>', f.document )
-                .contentOnly()
-                .contentBox( defaults.elWidth, defaults.elHeight )
-                .appendTo( f.$stage );
+        // No need to re-test the iframe expansion feature if there already is a result
+        if ( isUndefined( f.iframeExpands ) ) f.iframeExpands = testIframeExpands();
 
-            iframeExpansionTest.ready.done( function () {
-                f.iframeExpands = iframeExpansionTest.expands;
-                contentReady.resolve();
-            } );
+        f.ready = $.Deferred().resolve();
 
-        } );
-
-        f.ready = contentReady;
         return f;
     },
 
