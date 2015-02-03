@@ -27,9 +27,35 @@
             $hasScrollbars = $ ( '<div/>' )
                 .css( { width: "50px", height: "50px", overflow: "scroll", margin: 0, padding: 0, borderStyle: "none" } )
                 .append( $inner )
-                .appendTo( "body" );
+                .appendTo( document.body );
 
             expect( $.scrollbarWidth() ).to.equal( 50 - $hasScrollbars[0].clientWidth );
+        } );
+
+        it( 'matches the scrollbar width established according to the Alman method', function () {
+            // Here, we detect the size (width) of scroll bars for a given browser with the method used in Ben Alman's
+            // scrollbarWidth plugin. It is used as a reference because it is a well-established, battle-tested method.
+            // (But it is a little more roundabout than the one used in jQuery.isInView.)
+            //
+            // See
+            // - http://benalman.com/projects/jquery-misc-
+            // - http://jsbin.com/zeliy/1
+
+            var scrollbarWidthAlman, $detectionOuter, $detectionInner;
+            $detectionInner = $( document.createElement( "div" ) ).css( { margin: 0, padding: 0, borderStyle: "none" } );
+            $detectionOuter = $( document.createElement( "div" ) )
+                .css( {
+                    width: "100px", height: "100px", overflow: "auto",
+                    position: "absolute", top: "-500px", left: "-500px",
+                    margin: 0, padding: 0, borderStyle: "none"
+                } )
+                .append( $detectionInner )
+                .appendTo( document.body );
+
+            scrollbarWidthAlman = $detectionInner.innerWidth() - $detectionInner.height( 150 ).innerWidth();
+            $detectionOuter.remove();
+
+            expect( $.scrollbarWidth() ).to.equal( scrollbarWidthAlman );
         } );
 
         describe( 'The method does not rely on the exposed plugin API. When all other public methods of the plugin are deleted from jQuery', function () {

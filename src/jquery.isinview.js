@@ -395,23 +395,16 @@
      * @returns {number}
      */
     function browserScrollbarWidth () {
-        var $parent, $child;
+        var testEl;
 
         if ( _scrollbarWidth === undefined ) {
 
-            // todo simplify, remove the child, set parent to overflow:scroll, measure parent.offsetWidth - parent.clientWidth (rename parent to testEl); see Modernizr approach at https://github.com/Modernizr/Modernizr/blob/7bf3046835e4c97e1d5e98f6933288b80e8e7cb8/feature-detects/hiddenscroll.js
-            $child = $( document.createElement( "div" ) ).css( { margin: 0, padding: 0, borderStyle: "none" } );
-            $parent = $( document.createElement( "div" ) )
-                .css( {
-                    width: "100px", height: "100px", overflow: "auto",
-                    position: "absolute", top: "-500px", left: "-500px",
-                    margin: 0, padding: 0, borderStyle: "none"
-                } )
-                .append( $child )
-                .appendTo( "body" );
+            testEl = document.createElement( "div" );
+            testEl.style.cssText = "width: 100px; height: 100px; overflow: scroll; position: absolute; top: -500px; left: -500px; margin: 0px; padding: 0px; border: none;";
 
-            _scrollbarWidth = $child.innerWidth() - $child.height( 150 ).innerWidth();
-            $parent.remove();
+            document.body.appendChild( testEl );
+            _scrollbarWidth = testEl.offsetWidth - testEl.clientWidth;
+            document.body.removeChild( testEl );
 
         }
 
