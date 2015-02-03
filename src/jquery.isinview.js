@@ -1226,6 +1226,13 @@
 
     })();
 
+    // Let's prime $.scrollbarWidth() immediately after the DOM is ready. It just needs to be called once. That will run
+    // the test and cache the result. It is best to do it up front because
+    //
+    // - the test touches the DOM, so let's get it over with before people set up handlers for mutation events,
+    // - $.scrollbarWidth() is called in most code paths, so the result will indeed be needed.
+    $( browserScrollbarWidth );
+
     /**
      * Custom types.
      *
