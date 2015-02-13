@@ -1256,4 +1256,4 @@
      */
 
 
-}( jQuery || $ ));  // todo best solution?
+}( typeof jQuery !== "undefined" ? jQuery : $ ));
