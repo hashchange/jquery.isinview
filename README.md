@@ -22,7 +22,7 @@ Browsers are a moving target for development, and they are full of quirks, too. 
 
 ## Dependencies and setup
 
-[jQuery][] is the only dependency. Include jquery.isinview.js after [jQuery][].
+jQuery.isInView depends on [jQuery][] and [jQuery.documentSize][]. They must be available when jquery.isinview.js is loaded.
 
 The stable version of jQuery.isInView is available in the `dist` directory ([dev][dist-dev], [prod][dist-prod]), including an AMD build ([dev][dist-amd-dev], [prod][dist-amd-prod]). If you use Bower, fetch the files with `bower install jquery.isinview`. With npm, it is `npm install jquery.isinview`.
 
@@ -327,7 +327,7 @@ If you'd like to test, fix, customize or otherwise improve jQuery.isInView: here
 - Run `npm install`. (Creates the environment.)
 - Run `bower install`. (Fetches the dependencies of the script.)
 
-Your test and build environment is ready now. If you want to test against specific versions of Backbone, edit `bower.json` first.
+Your test and build environment is ready now. If you want to test against specific versions of jQuery, edit `bower.json` first.
 
 ### Running tests, creating a new build
 
@@ -335,7 +335,7 @@ Your test and build environment is ready now. If you want to test against specif
 
 Some tests are executed in a child window (aka pop-up window). Please _disable the pop-up blocker of the browser_ for the domain the tests are run under (usually localhost), or they will fail.
 
-To run the tests on on remote clients (mobile devices), start a web server with `grunt interactive` and visit `http://[your-host-ip]:9400/web-mocha/` with the client browser. Running the tests in the browser like this takes a _long_ time, so it makes sense to disable the power-save/sleep/auto-lock timeout on the mobile device. 
+To run the tests on remote clients (mobile devices), start a web server with `grunt interactive` and visit `http://[your-host-ip]:9400/web-mocha/` with the client browser. Running the tests in the browser like this takes a _long_ time, so it makes sense to disable the power-save/sleep/auto-lock timeout on the mobile device. 
 
 Further, on iOS, you need to guide the tests along. Even with the pop-up blocker disabled, iOS displays a notification each time a child window is opened by a test, and you need to dismiss each notification manually. You have about a minute to hit OK before the related part of the test suite times out. These notifications show up multiple times, so keep an eye on your device until all tests are done.
 
@@ -415,6 +415,7 @@ Copyright (c) 2014, 2015 Michael Heim.
 [perftests]: #performance-tests "Performance tests"
 
 [jQuery]: http://jquery.com/ "jQuery"
+[jQuery.documentSize]: https://github.com/hashchange/jquery.documentsize "jQuery.documentSize"
 [Underscore]: http://underscorejs.org/ "Underscore.js"
 
 [throttled-scroll]: http://ejohn.org/blog/learning-from-twitter/ "John Resig: Learning from Twitter"

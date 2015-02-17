@@ -4,13 +4,15 @@
     if ( typeof exports === 'object' ) {
 
         module.exports = factory(
-            require( 'jquery' )
+            require( 'jquery' ),
+            require( 'jquery.documentsize' )
         );
 
     } else if ( typeof define === 'function' && define.amd ) {
 
         define( [
-            'jquery'
+            'jquery',
+            'jquery.documentsize'
         ], factory );
 
     }

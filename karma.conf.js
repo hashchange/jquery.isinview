@@ -26,6 +26,7 @@ module.exports = function(config) {
     files: [
       // Component dependencies
       'bower_components/jquery/dist/jquery.js',
+      'bower_components/jquery.documentsize/dist/jquery.documentsize.js',
 
       'lib-other/**/*.js',
 
