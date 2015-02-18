@@ -1,4 +1,4 @@
-// jQuery.isInView, v0.5.0
+// jQuery.isInView, v0.5.1
 // Copyright (c)2015 Michael Heim, Zeilenwechsel.de
 // Distributed under MIT license
 // http://github.com/hashchange/jquery.isinview
@@ -496,13 +496,11 @@
      * Do not call if the container is a window (redundant) or a document. Both calls would fail.
      */
     function getRelativeRect ( rect, $container, cache ) {
-        var containerRect,
-            containerProps,
-            relativeRectCorrections;
+        var containerPaddingRectRoot;
 
-        if ( cache && cache.relativeRectCorrections ) {
+        if ( cache && cache.containerPaddingRectRoot ) {
 
-            relativeRectCorrections = cache.relativeRectCorrections;
+            containerPaddingRectRoot = cache.containerPaddingRectRoot;
 
         } else {
             // gBCR coordinates enclose padding, and leave out margin. That is perfect for scrolling because
@@ -514,25 +512,17 @@
             //
             // (See http://jsbin.com/pivata/10 for an extensive test of gBCR behaviour.)
 
-            containerRect = $container[0].getBoundingClientRect();
-            containerProps = toFloat( $container.css( [ "borderTopWidth", "borderRightWidth", "borderBottomWidth", "borderLeftWidth" ] ) );
-            relativeRectCorrections = {
-                top: containerRect.top - containerProps.borderTopWidth,
-                bottom: containerRect.top + containerProps.borderBottomWidth,
-                left: containerRect.left - containerProps.borderLeftWidth,
-                right: containerRect.left + containerProps.borderRightWidth
-            };
+            containerPaddingRectRoot = getPaddingRectRoot( $container[0] );
 
             // Cache the calculations
-            // todo why extend? obsolete, just assign
-            if ( cache ) cache.relativeRectCorrections = $.extend( {}, relativeRectCorrections );
+            if ( cache ) cache.containerPaddingRectRoot = containerPaddingRectRoot;
         }
 
         return {
-            top: rect.top - relativeRectCorrections.top,
-            bottom: rect.bottom - relativeRectCorrections.bottom,
-            left: rect.left - relativeRectCorrections.left,
-            right: rect.right - relativeRectCorrections.right
+            top: rect.top - containerPaddingRectRoot.top,
+            bottom: rect.bottom - containerPaddingRectRoot.top,
+            left: rect.left - containerPaddingRectRoot.left,
+            right: rect.right - containerPaddingRectRoot.left
         };
     }
 
@@ -556,6 +546,29 @@
             right: rect.right - ( props.paddingRight + props.borderRightWidth ),
             bottom: rect.bottom - ( props.paddingBottom + props.borderBottomWidth ),
             left: rect.left + props.paddingLeft + props.borderLeftWidth
+        };
+    }
+
+    /**
+     * Returns the top, left coordinates of the rect of the padding box (offset box).
+     *
+     * The coordinates match those of getBoundingClientRect, but exclude the borders.
+     *
+     * Does not care about bottom, right coordinates, in order to speed up the process.
+     *
+     * @param   {HTMLElement} elem
+     * @returns {{ top: number, left: number }}
+     */
+    function getPaddingRectRoot( elem ) {
+
+        var rect = elem.getBoundingClientRect(),
+            props = getCss( elem, [
+                "borderTopWidth", "borderLeftWidth"
+            ], { toFloat: true } );
+
+        return {
+            top: rect.top + props.borderTopWidth,
+            left: rect.left + props.borderLeftWidth
         };
     }
 
