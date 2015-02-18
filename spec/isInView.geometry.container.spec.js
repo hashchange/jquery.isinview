@@ -268,7 +268,7 @@
                     containerInnerWidth, containerInnerHeight;
 
                 beforeEach( function () {
-                    border = 10;
+                    border = 1;
                     f.$container.border( border );
 
                     containerInnerWidth = f.$container.width();
@@ -297,7 +297,86 @@
 
                 }
 
-                describe( 'When an element is inside the container and extends into the area occupied by the borders of the container, but not beyond them', function () {
+                describe( 'When an element is inside the container and extends into the area occupied by the top border of the container, but not beyond it', function () {
+                    // This also causes at least one scroll bar to appear, or perhaps both of them.
+
+                    beforeEach( function () {
+                        f.$el
+                            .contentBox( 10, containerInnerHeight + 1 )
+                            .relPositionAt( -1, 0 );
+                    } );
+
+                    it( 'it is not in view', function () {
+                        expect( f.$el.isInView( f.$container ) ).to.be.false;
+                    } );
+
+                    it( 'it is in partial view', function () {
+                        expect( f.$el.isInView( f.$container, { partially: true } ) ).to.be.true;
+                    } );
+
+                    it( 'its content area is not in view', function () {
+                        expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.be.false;
+                    } );
+
+                    it( 'its content area is in partial view', function () {
+                        expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.be.true;
+                    } );
+
+                } );
+
+                describe( 'When an element is inside the container and extends into the area occupied by the left border of the container, but not beyond it', function () {
+                    // This also causes at least one scroll bar to appear, or perhaps both of them.
+
+                    beforeEach( function () {
+                        f.$el
+                            .contentBox( containerInnerWidth + 1, 10 )
+                            .relPositionAt( 0, -1 );
+                    } );
+
+                    it( 'it is not in view', function () {
+                        expect( f.$el.isInView( f.$container ) ).to.be.false;
+                    } );
+
+                    it( 'it is in partial view', function () {
+                        expect( f.$el.isInView( f.$container, { partially: true } ) ).to.be.true;
+                    } );
+
+                    it( 'its content area is not in view', function () {
+                        expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.be.false;
+                    } );
+
+                    it( 'its content area is in partial view', function () {
+                        expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.be.true;
+                    } );
+
+                } );
+
+                describe( 'When an element is inside the container and extends into the area occupied by the bottom border of the container, but not beyond it', function () {
+                    // This also causes at least one scroll bar to appear, or perhaps both of them.
+
+                    beforeEach( function () {
+                        f.$el.contentBox( 10, containerInnerHeight + 1 );
+                    } );
+
+                    it( 'it is not in view', function () {
+                        expect( f.$el.isInView( f.$container ) ).to.be.false;
+                    } );
+
+                    it( 'it is in partial view', function () {
+                        expect( f.$el.isInView( f.$container, { partially: true } ) ).to.be.true;
+                    } );
+
+                    it( 'its content area is not in view', function () {
+                        expect( f.$el.isInView( f.$container, { box: "content-box" } ) ).to.be.false;
+                    } );
+
+                    it( 'its content area is in partial view', function () {
+                        expect( f.$el.isInView( f.$container, { partially: true, box: "content-box" } ) ).to.be.true;
+                    } );
+
+                } );
+
+                describe( 'When an element is inside the container and extends into the area occupied by the right border of the container, but not beyond it', function () {
                     // This also causes at least one scroll bar to appear, or perhaps both of them.
 
                     beforeEach( function () {
@@ -321,6 +400,7 @@
                     } );
 
                 } );
+
             } );
 
             describe( 'A container with margins', function () {
