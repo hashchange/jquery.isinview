@@ -548,13 +548,16 @@
 
                 describe( 'When the body is set to overflow: auto and the viewport to overflow: auto', function () {
 
+                    var bodyWidth, bodyHeight;
+
                     beforeEach( function () {
+                        bodyWidth = viewportWidth - 30;
+                        bodyHeight = viewportHeight - 30;
+
                         $documentElement.overflow( "auto" );
                         $body
-                            .contentBox( viewportWidth - 30, viewportHeight - 30 )
+                            .contentBox( bodyWidth, bodyHeight )
                             .overflow( "auto" );
-
-                        f.$el.contentBox( viewportWidth + 1, viewportHeight + 1 );
                     } );
 
                     if ( $.scrollbarWidth() > 0 ) {
@@ -563,12 +566,24 @@
                         // not 0. See limitations section in readme.
 
                         it( 'it returns scroll bars on the body if the content overflows the body', function () {
+                            f.$el.contentBox( bodyWidth + 1, bodyHeight + 1 );
                             expect( $body.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
+                        } );
+
+                        it( 'it returns a vertical scroll bar on the body if the content overflows the body vertically only', function () {
+                            f.$el.contentBox( bodyWidth - $.scrollbarWidth(), bodyHeight + 1 );
+                            expect( $body.hasScrollbar() ).to.eql( { horizontal: false, vertical: true } );
+                        } );
+
+                        it( 'it returns a horizontal scroll bar on the body if the content overflows the body horizontally only', function () {
+                            f.$el.contentBox( bodyWidth + 1, bodyHeight - $.scrollbarWidth() );
+                            expect( $body.hasScrollbar() ).to.eql( { horizontal: true, vertical: false } );
                         } );
 
                     }
 
                     it( 'it does not return scroll bars for the window, even if the body content is larger than the viewport, as long as the body itself fits inside the viewport', function () {
+                        f.$el.contentBox( viewportWidth + 1, viewportHeight + 1 );
                         expect( $window.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
                     } );
 

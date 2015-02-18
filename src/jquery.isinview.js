@@ -196,8 +196,8 @@
             bodyProps = _getViewportOverflows( query, context ).body;
 
             $body = $( context.body );
-            if ( query.getHorizontal ) result.horizontal = bodyProps.overflowScrollX || bodyProps.overflowAutoX && context.body.clientWidth < $body.width();
-            if ( query.getVertical ) result.vertical = bodyProps.overflowScrollY || bodyProps.overflowAutoY && context.body.clientHeight < $body.height();
+            if ( query.getHorizontal ) result.horizontal = bodyProps.overflowScrollX || bodyProps.overflowAutoX && context.body.clientHeight < $body.height();
+            if ( query.getVertical ) result.vertical = bodyProps.overflowScrollY || bodyProps.overflowAutoY && context.body.clientWidth < $body.width();
 
         } else {
 
