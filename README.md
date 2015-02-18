@@ -1,6 +1,6 @@
 # jQuery.isInView
 
-<small>[Setup][setup] - [Example: Lazy loading][example] - [API][api] - [Browser support][browsers] - [Limitations][limitations] - [Performance tips][perftips] - [Build and test][build]</small>
+<small>[Setup][setup] – [Example: Lazy loading][example] – [API][api] – [Browser support][browsers] – [Limitations][limitations] – [Performance tips][perftips] – [Build and test][build]</small>
 
 This jQuery plugin tells you if elements are in view inside a scrollable container, or inside a container hiding its overflow. It works with respect to the viewport, iframes, or other scrollable elements. 
 
@@ -8,7 +8,7 @@ This jQuery plugin tells you if elements are in view inside a scrollable contain
 
 You can choose between different ways to figure out which elements [are in view][api-core]. The plugin gives you [filters][] like `$elems.inView()`. You get an [`:inViewport` selector][api-selector], too. Or you can use [boolean queries][boolean-queries], such as [`$elem.isInView()`][api-fn.isInView]. 
 
-The methods of the plugin are optimized for performance and ridiculously fast: filtering 1000 elements takes no more than 3ms on an elderly desktop running Chrome, and about 9ms on an underpowered mobile device. As a result, jQuery.isInView is suitable for event handlers which are called frequently - scroll and resize handlers, for instance -, and it can deal with large numbers of elements.
+The methods of the plugin are optimized for performance and ridiculously fast: filtering 1000 elements takes no more than 3ms on an elderly desktop running Chrome, and about 9ms on an underpowered mobile device. As a result, jQuery.isInView is suitable for event handlers which are called frequently – scroll and resize handlers, for instance –, and it can deal with large numbers of elements.
 
 **Useful helpers**
 
@@ -86,7 +86,7 @@ Coming up next: a more formal description, more methods, and the fine print. The
 
 ### Core
 
-The primary purpose of jQuery.isInView is to tell you whether or not an element is "in view" - inside the viewport, or otherwise.
+The primary purpose of jQuery.isInView is to tell you whether or not an element is "in view" – inside the viewport, or otherwise.
 
 #### Filters
 
@@ -156,7 +156,7 @@ If set to true, elements which are just partially inside the container are deeme
 
 _Type: string, default: "border-box", alternative: "content-box"_
 
-By default, an element is defined by its border-box and considered to be "in view" if its border, padding, and content area are inside the container. With the `box` option set to `"content-box"`, borders and padding are ignored - only the content area determines if an element is in or out of view.
+By default, an element is defined by its border-box and considered to be "in view" if its border, padding, and content area are inside the container. With the `box` option set to `"content-box"`, borders and padding are ignored – only the content area determines if an element is in or out of view.
 
 Please be aware that the `"content-box"` option requires additional DOM queries for every element in a jQuery set, and therefore makes filtering a lot slower. See the [performance tips below][perftips].
 
@@ -202,7 +202,7 @@ The `.hasScrollbar` method can be called on any sort of item a jQuery collection
 
 - when called on a window, document, or document element (`<html>` tag), `.hasScrollbar()` looks for window scroll bars
 - when called on an iframe element, `.hasScrollbar()` looks for scroll bars on the content window of the iframe
-- when called on the body, `.hasScrollbar()` looks for scroll bars on the body tag itself (!). That's because in exotic scenarios, the body _can_ have scroll bars of its own. Usually, there aren't any - if you want to find out about window scroll bars, don't call `.hasScrollbar()` on the body.
+- when called on the body, `.hasScrollbar()` looks for scroll bars on the body tag itself (!). That's because in exotic scenarios, the body _can_ have scroll bars of its own. Usually, there aren't any – if you want to find out about window scroll bars, don't call `.hasScrollbar()` on the body.
 
 Please be aware that the method checks for the presence of a scroll bar and nothing else. It doesn't mean that the scroll bar actually scrolls, or takes up any space in the document:
 
@@ -260,13 +260,13 @@ jQuery.isInView has been tested with
 - IE9+
 - Safari on iOS 8, Chrome on Android 5
 
-The plugin is not formally tested in IE8 (due to a limitation of the test suite), and for that reason, IE8 is not supported. That said, it appears to work there, too. Your mileage may vary - if you still have to support IE8, go ahead and use it, but keep your eyes open.
+The plugin is not formally tested in IE8 (due to a limitation of the test suite), and for that reason, IE8 is not supported. That said, it appears to work there, too. Your mileage may vary – if you still have to support IE8, go ahead and use it, but keep your eyes open.
 
 Feel free to [run the test suite][tests] on other devices. Feedback is welcome, about successful tests as well as failing ones.
 
 ## Limitations
 
- jQuery.isInView examines whether elements are in or out of view with regard to an _area_, defined by a container. From that perspective, elements only ever drop out of view because they overflow their container. But there are other ways elements can be obscured - and they are not captured by jQuery.isInView.
+ jQuery.isInView examines whether elements are in or out of view with regard to an _area_, defined by a container. From that perspective, elements only ever drop out of view because they overflow their container. But there are other ways elements can be obscured – and they are not captured by jQuery.isInView.
 
 - No consideration of stacking:
 
@@ -284,7 +284,7 @@ There are also a few limitations with regard to HTML elements and their styles:
 
 - The `<object>` tag is not supported as a container.
 
-In terms of weird edge cases, there is one for [`.hasScrollbar()`][api-fn.hasScrollbar]. If a browser displays scroll bars [of width 0][api-scrollbarWidth] - like those on iOS and Android - and the overflow setting of the documentElement is not "visible", and the overflow of the body is set to "auto", and you take the unusual step of querying the scroll bars [of the body itself][api-fn.hasScrollbar] (as opposed to the window), `.hasScrollbar()` fails to detect them. (You still there?) Just so you know that this won't (and can't) be fixed. 
+In terms of weird edge cases, there is one for [`.hasScrollbar()`][api-fn.hasScrollbar]. If a browser displays scroll bars [of width 0][api-scrollbarWidth] – like those on iOS and Android – and the overflow setting of the documentElement is not "visible", and the overflow of the body is set to "auto", and you take the unusual step of querying the scroll bars [of the body itself][api-fn.hasScrollbar] (as opposed to the window), `.hasScrollbar()` fails to detect them. (You still there?) Just so you know that this won't (and can't) be fixed. 
 
 Finally, the plugin doesn't deal with multiple, nested scrolls yet. But it merely isn't aggregating the results for you. You can call it on each individual container and simply chain the results (with `&&` for boolean tests, or filter chaining).
 
@@ -292,7 +292,7 @@ Finally, the plugin doesn't deal with multiple, nested scrolls yet. But it merel
 
 A few best practices speed up jQuery.isInView calls, and do so by a huge amount. In hot code paths like scroll handlers, they have the potential to make or break your application as a whole. So here goes.
 
-- If you act on multiple elements, always use [a filter][filters], and never - never! - [a boolean query][boolean-queries] in a loop. In other words, don't do this: 
+- If you act on multiple elements, always use [a filter][filters], and never – never! – [a boolean query][boolean-queries] in a loop. In other words, don't do this: 
   
   ```javascript
   $content.each( function () {
@@ -426,8 +426,8 @@ Copyright (c) 2014, 2015 Michael Heim.
 [Bower]: http://bower.io/ "Bower: a package manager for the web"
 [npm]: https://npmjs.org/ "npm: Node Packaged Modules"
 [Grunt]: http://gruntjs.com/ "Grunt: The JavaScript Task Runner"
-[Karma]: http://karma-runner.github.io/ "Karma - Spectacular Test Runner for Javascript"
-[Mocha]: http://visionmedia.github.io/mocha/ "Mocha - the fun, simple, flexible JavaScript test framework"
+[Karma]: http://karma-runner.github.io/ "Karma – Spectacular Test Runner for Javascript"
+[Mocha]: http://visionmedia.github.io/mocha/ "Mocha – the fun, simple, flexible JavaScript test framework"
 [Chai]: http://chaijs.com/ "Chai: a BDD / TDD assertion library"
-[Sinon]: http://sinonjs.org/ "Sinon.JS - Versatile standalone test spies, stubs and mocks for JavaScript"
+[Sinon]: http://sinonjs.org/ "Sinon.JS – Versatile standalone test spies, stubs and mocks for JavaScript"
 [JSHint]: http://www.jshint.com/ "JSHint, a JavaScript Code Quality Tool"
