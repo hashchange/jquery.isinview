@@ -70,9 +70,16 @@ function createChildWindow ( readyDfd, size ) {
  * Creates an iframe with an HTML5 doctype and UTF-8 encoding. Appends it to the body, or to another specified parent
  * element. Alternatively, the iframe can be prepended to the parent.
  *
+ * The iframe element can be styled as it is created, before it is added to the DOM, e.g. to keep it out of view.
+ * Likewise, styles can be written into the iframe document as it is created, providing it with defaults from the
+ * get-go.
+ *
  * @param   {Object}             [opts]
  * @param   {HTMLElement|jQuery} [opts.parent=document.body]  the parent element to which the iframe is appended
  * @param   {boolean}            [opts.prepend=false]         if true, the iframe gets prepended to the parent, rather than appended
+ * @param   {string}             [opts.elementStyles]         cssText string, styles the iframe _element_
+ * @param   {string}             [opts.documentStyles]        cssText string of entire rules, styles the iframe document, e.g.
+ *                                                            "html, body { overflow: hidden; } div.foo { margin: 2em; }"
  * @returns {HTMLIFrameElement}
  */
 function createIframe ( opts ) {
@@ -80,16 +87,19 @@ function createIframe ( opts ) {
         _document = parent.ownerDocument,
         iframe = _document.createElement( "iframe" );
 
+    opts || ( opts = {} );
+
+    if ( opts.elementStyles ) iframe.style.cssText = ensureTrailingSemicolon( opts.elementStyles );
     iframe.frameborder = "0";
 
-    if ( opts && opts.prepend ) {
+    if ( opts.prepend ) {
         parent.insertBefore( iframe, parent.firstChild );
     } else {
         parent.appendChild( iframe );
     }
 
     iframe.src = 'about:blank';
-    createIframeDocument( iframe );
+    createIframeDocument( iframe, opts.documentStyles );
 
     return iframe;
 }
@@ -101,15 +111,18 @@ function createIframe ( opts ) {
  * descendant of the body element. A document inside an iframe can only be created when these conditions are met.
  *
  * @param   {HTMLIFrameElement|jQuery}  iframe
+ * @param   {string}                    [documentStyles]  cssText string of CSS rules, styles the iframe document, e.g.
+ *                                                        "html, body { overflow: hidden; } div.foo { margin: 2em; }"
  * @returns {Document}
  */
-function createIframeDocument ( iframe ) {
+function createIframeDocument ( iframe, documentStyles ) {
     if ( varExists( $ ) && iframe instanceof $ ) iframe = iframe[0];
 
     if ( ! iframe.ownerDocument.body.contains( iframe ) ) throw new Error( "The iframe has not been appended to the DOM, or is not a descendant of the body element. Can't create an iframe content document." );
     if ( ! iframe.contentDocument ) throw new Error( "Cannot access the iframe content document. Check for cross-domain policy restrictions." );
 
-    iframe.contentDocument.write( '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title></title>\n</head>\n<body>\n</body>\n</html>' );
+    documentStyles = documentStyles ? '<style type="text/css">\n' + documentStyles + '\n</style>\n' : "";
+    iframe.contentDocument.write( '<!DOCTYPE html>\n<html>\n<head>\n<meta charset="UTF-8">\n<title></title>\n' + documentStyles + '</head>\n<body>\n</body>\n</html>' );
 
     return iframe.contentDocument;
 }
@@ -230,6 +243,24 @@ function testIframeExpands () {
 }
 
 /**
+ * Forces a reflow for a given element, in case it doesn't happen automatically.
+ *
+ * For the technique, see http://stackoverflow.com/a/14382251/508355
+ *
+ * For some background, see e.g. http://apmblog.dynatrace.com/2009/12/12/understanding-internet-explorer-rendering-behaviour/
+ *
+ * @param {HTMLElement|jQuery} element
+ */
+function forceReflow ( element ) {
+    if ( !varExists( $ ) ) throw new Error( "This method uses jQuery, but the $ variable is not available" );
+
+    var $element =  element instanceof $ ? element : $( element );
+
+    $element.css( { display: "none" } ).height();
+    $element.css( { display: "block" } );
+}
+
+/**
  * Detects if the browser is on iOS. Works for Safari as well as other browsers, say, Chrome on iOS.
  *
  * Required for some iOS behaviour which can't be feature-detected in any way.
@@ -239,3 +270,53 @@ function testIframeExpands () {
 function isIOS () {
     return /iPad|iPhone|iPod/g.test( navigator.userAgent );
 }
+
+/**
+ * Detects IE.
+ *
+ * Can use a version requirement. A range can also be specified, e.g. with an option like { gte: 8, lt: 11 }.
+ *
+ * @param {Object} [opts]
+ * @param {number} [opts.eq]   the IE version must be as specified
+ * @param {number} [opts.lt]   the IE version must be less than the one specified
+ * @param {number} [opts.lte]  the IE version must be less than or equal to the one specified
+ * @param {number} [opts.gt]   the IE version must be greater than the one specified
+ * @param {number} [opts.gte]  the IE version must be greater than or equal to the one specified
+ */
+function isIE ( opts ) {
+    var ver = getIEVersion(),
+        isMatch = ver !== 0;
+
+    opts || ( opts = {} );
+
+    if ( isMatch && opts.eq ) isMatch = ver === opts.eq;
+    if ( isMatch && opts.lt ) isMatch = ver < opts.lt;
+    if ( isMatch && opts.lte ) isMatch = ver <= opts.lte;
+    if ( isMatch && opts.gt ) isMatch = ver > opts.gt;
+    if ( isMatch && opts.gte ) isMatch = ver >= opts.gte;
+
+    return isMatch;
+}
+
+/**
+ * Detects the IE version. Returns the major version number, or 0 if the browser is not IE.
+ *
+ * Simple solution, solely based on UA sniffing. In a better implementation, conditional comments would be used to
+ * detect IE6 to IE9 - see https://gist.github.com/cowboy/542301 for an example. UA sniffing would only serve as a
+ * fallback to detect IE > 9. There are also other solutions to infer the version of IE > 9. For inspiration, see
+ * http://stackoverflow.com/q/17907445/508355.
+ */
+function getIEVersion () {
+    var ieMatch = /MSIE (\d+)/.exec( navigator.userAgent ) || /Trident\/.+? rv:(\d+)/.exec( navigator.userAgent );
+    return ( ieMatch && ieMatch.length ) ? parseFloat( ieMatch[1] ) : 0;
+}
+
+function isPhantomJs () {
+    return /PhantomJS/.test( navigator.userAgent );
+}
+
+// Legacy name, still around in old test code.
+function inPhantomJs () {
+    return isPhantomJs();
+}
+

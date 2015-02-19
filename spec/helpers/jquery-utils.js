@@ -82,8 +82,22 @@ $.fn.leftMargin = function ( size ) {
     return this.css( { marginLeft: toPx( size ) } );
 };
 
+$.fn.box = function ( width, height ) {
+    return this.css( {
+        width:  width + "px",
+        height: height + "px"
+    } );
+};
+
 $.fn.contentBox = function ( width, height ) {
     return this.width( width ).height( height );
+};
+
+$.fn.noSize = function () {
+    return this.css( {
+        width: "",
+        height: ""
+    } );
 };
 
 $.fn.paddingAndBorder = function ( paddingSize, borderSize ) {
@@ -112,7 +126,8 @@ $.fn.floatLeft = function () {
     return this.css( { float: "left" } );
 };
 
-$.fn.positionAt = function ( top, left ) {
+$.fn.positionAt =
+$.fn.absPositionAt = function ( top, left ) {
     return this.css( {
         position: "absolute",
         top: toPx( top ),
@@ -125,6 +140,14 @@ $.fn.relPositionAt = function ( top, left ) {
         position: "relative",
         top: toPx( top ),
         left: toPx( left )
+    } );
+};
+
+$.fn.inFlow = function () {
+    return this.css( {
+        position: "static",
+        top: "",
+        left: ""
     } );
 };
 
