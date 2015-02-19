@@ -2,7 +2,10 @@
 (function () {
     "use strict";
 
-    describe( '$.fn.scrollbarWidth', function () {
+    describeUnless(
+        isIE( { eq: 10 } ),
+        "Skipped in IE10 because of erratic behaviour of the test suite, see note at the top of ownerWindow.spec.js",
+        '$.fn.scrollbarWidth', function () {
 
         // Fixture
         var f;

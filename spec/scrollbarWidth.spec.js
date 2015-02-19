@@ -4,7 +4,8 @@
 
     describe( '$.scrollbarWidth', function () {
 
-        var $hasScrollbars;
+        var messageIE10 = "Skipped in IE10 because of erratic behaviour of the test suite, see note at the top of ownerWindow.spec.js",
+            $hasScrollbars;
 
         afterEach( function () {
             if ( $hasScrollbars ) $hasScrollbars.remove();
@@ -22,7 +23,7 @@
             expect( $.scrollbarWidth() ).to.be.below( 30 );
         } );
 
-        it( 'matches the scrollbar width measured on a visible, scrolling element', function () {
+        itUnless( isIE( { eq: 10 } ), messageIE10, 'matches the scrollbar width measured on a visible, scrolling element', function () {
             var $inner = $( "<div/>" ).css( { width: "100px", height: "100px" } );
             $hasScrollbars = $ ( '<div/>' )
                 .css( { width: "50px", height: "50px", overflow: "scroll", margin: 0, padding: 0, borderStyle: "none" } )
@@ -32,7 +33,7 @@
             expect( $.scrollbarWidth() ).to.equal( 50 - $hasScrollbars[0].clientWidth );
         } );
 
-        it( 'matches the scrollbar width established according to the Alman method', function () {
+        itUnless( isIE( { eq: 10 } ), messageIE10, 'matches the scrollbar width established according to the Alman method', function () {
             // Here, we detect the size (width) of scroll bars for a given browser with the method used in Ben Alman's
             // scrollbarWidth plugin. It is used as a reference because it is a well-established, battle-tested method.
             // (But it is a little more roundabout than the one used in jQuery.isInView.)
