@@ -394,12 +394,12 @@ Code in the data provider test helper: (c) 2014 Box, Inc., Apache 2.0 license. [
 
 [api-core]: #core "API: Core methods"
 [filters]: #filters "API: filters"
-[api-fn.inView]: #inview-container-options- "API: .inView()"
+[api-fn.inView]: #inview-container--options- "API: .inView()"
 [api-fn.inViewport]: #inviewport-options- "API: .inViewport()"
-[api-selector]: #-inviewport-selector "API: :inViewport selector"
+[api-selector]: #inviewport-selector "API: :inViewport selector"
 
 [boolean-queries]: #boolean-queries "API: boolean queries"
-[api-fn.isInView]: #isinview-container-options- "API: .isInView()"
+[api-fn.isInView]: #isinview-container--options- "API: .isInView()"
 
 [api-options]: #options "API: Options for core queries"
 [api-options.tolerance]: #optionstolerance "API: 'tolerance' option"
@@ -410,8 +410,8 @@ Code in the data provider test helper: (c) 2014 Box, Inc., Apache 2.0 license. [
 [api-helpers]: #helpers "API: Helpers"
 [api-fn.hasScrollbar]: #hasscrollbar-axis- "API: .hasScrollbar()"
 [api-fn.scrollbarWidth]: #scrollbarwidth-axis- "API: .scrollbarWidth()"
-[api-scrollbarWidth]: #jqueryscrollbarwidth- "API: jQuery.scrollbarWidth()"
-[api-fn.ownerWindow]: #ownerwindow- "API: .ownerWindow()"
+[api-scrollbarWidth]: #jqueryscrollbarwidth "API: jQuery.scrollbarWidth()"
+[api-fn.ownerWindow]: #ownerwindow "API: .ownerWindow()"
 
 [tests]: #running-tests-creating-a-new-build "Running tests, creating a new build"
 [perftests]: #performance-tests "Performance tests"
