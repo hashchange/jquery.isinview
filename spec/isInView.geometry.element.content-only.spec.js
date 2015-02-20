@@ -28,6 +28,11 @@
 
                         };
 
+        // SlimerJS is excluded from tests taking place in a child window. SlimerJS seems to suppress scroll bars in a
+        // child window, regardless of settings. The tests don't handle that. This is a SlimerJS peculiarity - the
+        // corresponding Firefox version, based on the same revision of the Gecko engine, is not affected.
+        if ( isSlimerJs() ) delete scenarios["a child window as container"];
+
         // Increase timeout to allow ample time for child window creation. Make it long enough to dismiss modal warning
         // dialogs in iOS, too, which must be done manually.
         this.timeout( 64000 );

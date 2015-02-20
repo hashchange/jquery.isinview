@@ -8,10 +8,14 @@
         // doesn't have a window of a given size - its "window" automatically expands to the size of the document. The
         // tests don't accommodate this behaviour.
 
+        // SlimerJS is excluded from tests taking place in a child window. SlimerJS seems to suppress scroll bars in a
+        // child window, regardless of settings. The tests don't handle that. This is a SlimerJS peculiarity - the
+        // corresponding Firefox version, based on the same revision of the Gecko engine, is not affected.
+
         /** @type {DOMFixture}  populated by Setup.create() */
         var f,
-
-            viewportShowsHidden;
+            viewportShowsHidden,
+            messagePhantomSlimer = "Skipped in PhantomJS and SlimerJS, see comments at the top of the test suite";
 
         beforeEach( function () {
 
@@ -1241,7 +1245,8 @@
                 return f.ready;
             } );
 
-            it_noPhantom( 'When the child window has scroll bars and the global window does not, it detects the scroll bars of the child window', function () {
+            itUnless(
+                isPhantomJs() || isSlimerJs(), messagePhantomSlimer, 'When the child window has scroll bars and the global window does not, it detects the scroll bars of the child window', function () {
                 var $childWindow = $( f.childWindow );
                 f.$el.contentBox( $childWindow.width() + 1, $childWindow.height() + 1 );
                 expect( $childWindow.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
