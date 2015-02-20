@@ -98,7 +98,7 @@ _Returns: jQuery_
 
 Acts as a filter and returns those elements in the collection which are in view inside the viewport, or inside another container.
 
-The container can be a window, iframe, scrollable element (`overflow: scroll` or `overflow: auto`), an element with `overflow: hidden`, or a selector for any of these. Defaults to the window containing the elements.
+The container can be a window, iframe, scrollable element (`overflow: scroll` or `overflow: auto`), an element with `overflow: hidden`, or a selector for any of these. A jQuery object or a plain DOM object are equally acceptable. The container defaults to the window containing the elements.
 
 The size of an element is defined by its border-box, which includes its padding and border. Alternatively, the content-box of the element [can be used][api-options.box], excluding padding and borders.
 
@@ -128,7 +128,7 @@ _Returns: boolean_
 
 Returns true if the element is in view inside the viewport, or inside another container. Examines the first element in a jQuery collection.
 
-The container can be a window, iframe, scrollable element (`overflow: scroll` or `overflow: auto`), an element with `overflow: hidden`, or a selector for any of these. Defaults to the window containing the element.
+The container can be a window, iframe, scrollable element (`overflow: scroll` or `overflow: auto`), an element with `overflow: hidden`, or a selector for any of these. A jQuery object or a plain DOM object are equally acceptable. The container defaults to the window containing the element.
 
 The size of an element is defined by its border-box, which includes its padding and border. Alternatively, the content-box of the element [can be used][api-options.box], excluding padding and borders.
 
@@ -259,6 +259,7 @@ jQuery.isInView has been tested with
 - 2015 versions of Chrome, Firefox, Safari, and Opera on the Desktop
 - IE9+
 - Safari on iOS 8, Chrome on Android 5
+- PhantomJS, SlimerJS
 
 The plugin is not formally tested in IE8 (due to a limitation of the test suite), and for that reason, IE8 is not supported. That said, it appears to work there, too. Your mileage may vary – if you still have to support IE8, go ahead and use it, but keep your eyes open.
 
