@@ -5,22 +5,34 @@
     describe( 'isInView: Element geometry. An element with a content area only (no padding, borders, margins)', function () {
 
         /** @type {DOMFixture}  populated by Setup.create() */
-        var f;
+        var f,
+
+            scenarios = isPhantomJs() ?
+                        {
+                            // PhantomJS is excluded from many tests because its behaviour is markedly different from
+                            // ordinary browsers. It doesn't have a window of a given size - its "window" automatically
+                            // expands to the size of the document. The tests don't accommodate this behaviour.
+                            "a div set to overflow:auto as container": "overflowAuto",
+                            "a div set to overflow:scroll as container": "overflowScroll",
+                            "a div set to overflow:hidden as container": "overflowHidden"
+
+                        } :
+                        {
+
+                            "the global window as container": "window",
+                            "an iframe as container": "iframe",
+                            "a child window as container": "childWindow",
+                            "a div set to overflow:auto as container": "overflowAuto",
+                            "a div set to overflow:scroll as container": "overflowScroll",
+                            "a div set to overflow:hidden as container": "overflowHidden"
+
+                        };
 
         // Increase timeout to allow ample time for child window creation. Make it long enough to dismiss modal warning
         // dialogs in iOS, too, which must be done manually.
         this.timeout( 64000 );
 
-        withData( {
-
-            "the global window as container": "window",
-            "an iframe as container": "iframe",
-            "a child window as container": "childWindow",
-            "a div set to overflow:auto as container": "overflowAuto",
-            "a div set to overflow:scroll as container": "overflowScroll",
-            "a div set to overflow:hidden as container": "overflowHidden"
-
-        }, function ( setupType ) {
+        withData( scenarios, function ( setupType ) {
 
             var containerFullWidth, containerFullHeight,
                 containerInnerWidthUpToScrollbar,

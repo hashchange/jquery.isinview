@@ -4,6 +4,10 @@
 
     describe( '$.fn.hasScrollbar: Geometry', function () {
 
+        // PhantomJS is excluded from many tests because its behaviour is markedly different from ordinary browsers. It
+        // doesn't have a window of a given size - its "window" automatically expands to the size of the document. The
+        // tests don't accommodate this behaviour.
+
         /** @type {DOMFixture}  populated by Setup.create() */
         var f,
 
@@ -48,7 +52,7 @@
                 } );
             } );
 
-            describe( 'It a detects a vertical scroll bar, and not a horizontal one', function () {
+            describe_noPhantom( 'It a detects a vertical scroll bar, and not a horizontal one', function () {
 
                 it( 'when the body content is longer than the viewport height', function () {
                     f.$el.height( viewportHeight + 1 );
@@ -180,7 +184,7 @@
 
             } );
 
-            describe( 'It a detects a horizontal scroll bar, and not a vertical one', function () {
+            describe_noPhantom( 'It a detects a horizontal scroll bar, and not a vertical one', function () {
 
                 it( 'when the body is wider than the viewport width', function () {
                     $body.width( viewportWidth + 1 );
@@ -264,7 +268,7 @@
 
             } );
 
-            describe( 'It detects a vertical and horizontal scroll bar', function () {
+            describe_noPhantom( 'It detects a vertical and horizontal scroll bar', function () {
 
                 it( 'when the body content is wider and higher than the viewport', function () {
                     f.$el.contentBox( viewportWidth + 1, viewportHeight + 1 );
@@ -502,7 +506,7 @@
                         expect( $body.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
                     } );
 
-                    it( '...but it does for the window', function () {
+                    it_noPhantom( '...but it does for the window', function () {
                         expect( $window.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
                     } );
 
@@ -519,7 +523,7 @@
                         expect( $body.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
                     } );
 
-                    it( '...but it does for the window', function () {
+                    it_noPhantom( '...but it does for the window', function () {
                         expect( $window.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
                     } );
 
@@ -604,7 +608,7 @@
                         expect( $body.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
                     } );
 
-                    it( '...but it does for the window', function () {
+                    it_noPhantom( '...but it does for the window', function () {
                         expect( $window.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
                     } );
 
@@ -677,7 +681,7 @@
                         expect( $window.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
                     } );
 
-                    it( '...but it returns scroll bars for the window if the body is larger than the viewport', function () {
+                    it_noPhantom( '...but it returns scroll bars for the window if the body is larger than the viewport', function () {
                         $body.contentBox( viewportWidth + 1, viewportHeight + 1 );
                         expect( $window.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
                     } );
@@ -1237,7 +1241,7 @@
                 return f.ready;
             } );
 
-            it( 'When the child window has scroll bars and the global window does not, it detects the scroll bars of the child window', function () {
+            it_noPhantom( 'When the child window has scroll bars and the global window does not, it detects the scroll bars of the child window', function () {
                 var $childWindow = $( f.childWindow );
                 f.$el.contentBox( $childWindow.width() + 1, $childWindow.height() + 1 );
                 expect( $childWindow.hasScrollbar() ).to.eql( { horizontal: true, vertical: true } );
