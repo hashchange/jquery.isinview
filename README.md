@@ -22,7 +22,7 @@ Browsers are a moving target for development, and they are full of quirks, too. 
 
 ## Dependencies and setup
 
-jQuery.isInView depends on [jQuery][] and [jQuery.documentSize][]. They must be available when jquery.isinview.js is loaded.
+jQuery.isInView depends on [jQuery][] and [jQuery.documentSize][]. They must be ready for use when jquery.isinview.js is loaded.
 
 The stable version of jQuery.isInView is available in the `dist` directory ([dev][dist-dev], [prod][dist-prod]), including an AMD build ([dev][dist-amd-dev], [prod][dist-amd-prod]). If you use Bower, fetch the files with `bower install jquery.isinview`. With npm, it is `npm install jquery.isinview`.
 
@@ -377,6 +377,8 @@ MIT.
 
 Copyright (c) 2014, 2015 Michael Heim.
 
+Code in the data provider test helper: (c) 2014 Box, Inc., Apache 2.0 license. [See file][data-provider.js].
+
 [dist-dev]: https://raw.github.com/hashchange/jquery.isinview/master/dist/jquery.isinview.js "jquery.isinview.js"
 [dist-prod]: https://raw.github.com/hashchange/jquery.isinview/master/dist/jquery.isinview.min.js "jquery.isinview.min.js"
 [dist-amd-dev]: https://raw.github.com/hashchange/jquery.isinview/master/dist/amd/jquery.isinview.js "jquery.isinview.js, AMD build"
@@ -421,6 +423,8 @@ Copyright (c) 2014, 2015 Michael Heim.
 [throttled-scroll]: http://ejohn.org/blog/learning-from-twitter/ "John Resig: Learning from Twitter"
 [Underscore.throttle]: http://underscorejs.org/#throttle "Underscore.js: _.throttle()"
 [css-clipping-masking]: http://css-tricks.com/clipping-masking-css/ "CSS-Tricks: Clipping and Masking in CSS"
+
+[data-provider.js]: https://github.com/hashchange/jquery.isinview/blob/master/spec/helpers/data-provider.js "Source code of data-provider.js"
 
 [Node.js]: http://nodejs.org/ "Node.js"
 [Bower]: http://bower.io/ "Bower: a package manager for the web"
