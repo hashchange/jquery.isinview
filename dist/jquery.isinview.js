@@ -1,4 +1,4 @@
-// jQuery.isInView, v0.5.1
+// jQuery.isInView, v1.0.0
 // Copyright (c)2015 Michael Heim, Zeilenwechsel.de
 // Distributed under MIT license
 // http://github.com/hashchange/jquery.isinview
@@ -220,9 +220,12 @@
             result.vertical = scrollHeight > 0 && ( elemProps.overflowScrollY || elemProps.overflowAutoY && ( innerHeight = $elem.innerHeight() ) < scrollHeight );
 
             // Detect if the appearance of one scroll bar causes the other to appear, too.
-            // todo what if this triggers and overflow is hidden or visible - phantom scroll bar detected? what does scroll height return for these overflow types?
-            result.vertical = result.vertical || result.horizontal && innerHeight - browserScrollbarWidth() < scrollHeight;
-            result.horizontal = result.horizontal || result.vertical && innerWidth - browserScrollbarWidth() < scrollWidth;
+            result.vertical = result.vertical ||
+                              result.horizontal && elemProps.overflowAutoY &&
+                              ( innerHeight !== undefined ? innerHeight : $elem.innerHeight() ) - browserScrollbarWidth() < scrollHeight;
+            result.horizontal = result.horizontal ||
+                                result.vertical && elemProps.overflowAutoX &&
+                                ( innerWidth !== undefined ? innerWidth : $elem.innerWidth() ) - browserScrollbarWidth() < scrollWidth;
 
         }
 
@@ -457,13 +460,12 @@
         // That said, the definition of visibility and the actual test are the same as in jQuery :visible.
         if ( config.excludeHidden && !( elem.offsetWidth > 0 && elem.offsetHeight > 0 ) ) return false;
 
-        // todo make sure the cache is used even if containerWidth or containerHeight is 0 (and perhaps exit right away).
-        if ( config.useHorizontal ) containerWidth = cache.containerWidth || ( cache.containerWidth = getNetContainerWidth( $container, config.containerIsWindow ) );
-        if ( config.useVertical ) containerHeight = cache.containerHeight || ( cache.containerHeight = getNetContainerHeight( $container, config.containerIsWindow ) );
+        if ( config.useHorizontal ) containerWidth = getNetContainerWidth( $container, config.containerIsWindow, cache );
+        if ( config.useVertical ) containerHeight = getNetContainerHeight( $container, config.containerIsWindow, cache );
 
         // Convert tolerance to a px value (if given as a percentage)
-        hTolerance = cache.hTolerance || ( cache.hTolerance = config.toleranceType === "add" ? config.tolerance : containerWidth * config.tolerance );
-        vTolerance = cache.vTolerance || ( cache.vTolerance = config.toleranceType === "add" ? config.tolerance : containerHeight * config.tolerance );
+        hTolerance = cache.hTolerance !== undefined ? cache.hTolerance : ( cache.hTolerance = config.toleranceType === "add" ? config.tolerance : containerWidth * config.tolerance );
+        vTolerance = cache.vTolerance !== undefined ? cache.vTolerance : ( cache.vTolerance = config.toleranceType === "add" ? config.tolerance : containerHeight * config.tolerance );
 
         // We can safely use getBoundingClientRect without a fallback. Its core properties (top, left, bottom, right)
         // are supported on the desktop for ages (IE5+). On mobile, too: supported from Blackberry 6+ (2010), iOS 4
@@ -896,34 +898,72 @@
 
     /**
      * Gets the width of a jQuery-wrapped container, excluding scroll bars. Also supports quirks mode for window
-     * containers, unlike jQuery's $( window ).width().
+     * containers, unlike jQuery's $( window ).width(). Makes use of caching if a cache object is provided.
      *
-     * @param {jQuery}  $container
-     * @param {boolean} isWindow    required to speed up the process
+     * @param   {jQuery}  $container
+     * @param   {boolean} isWindow    required to speed up the process
+     * @param   {Object}  [cache]
      * @returns {number}
      */
-    function getNetContainerWidth ( $container, isWindow ) {
-        // todo cache effectiveScrollbarWith( $container ), is used in getNetContainerHeight as well
-        var containerScrollbarWidths;
-        if ( ! isWindow ) containerScrollbarWidths = effectiveScrollbarWith( $container );
+    function getNetContainerWidth ( $container, isWindow, cache ) {
+        var width;
 
-        return isWindow ? getWindowDimension( $container, "Width" ) : $container.innerWidth() - containerScrollbarWidths.vertical;
+        if ( cache && cache.netContainerWidth !== undefined ) {
+            width = cache.netContainerWidth;
+        } else {
+            width = isWindow ?
+                    getWindowDimension( $container, "Width" ) :
+                    $container.innerWidth() - getContainerScrollbarWidths( $container, cache ).vertical;
+
+            if ( cache ) cache.netContainerWidth = width;
+        }
+
+        return width;
     }
 
     /**
      * Gets the height of a jQuery-wrapped container, excluding scroll bars. Also supports quirks mode for window
-     * containers, unlike jQuery's $( window ).width().
+     * containers, unlike jQuery's $( window ).height(). Makes use of caching if a cache object is provided.
      *
-     * @param {jQuery}  $container
-     * @param {boolean} isWindow    required to speed up the process
+     * @param   {jQuery}  $container
+     * @param   {boolean} isWindow    required to speed up the process
+     * @param   {Object}  [cache]
      * @returns {number}
      */
-    function getNetContainerHeight ( $container, isWindow ) {
-        // todo cache effectiveScrollbarWith( $container ), is used in getNetContainerWidth as well
-        var containerScrollbarWidths;
-        if ( ! isWindow ) containerScrollbarWidths = effectiveScrollbarWith( $container );
+    function getNetContainerHeight ( $container, isWindow, cache ) {
+        var height;
 
-        return isWindow ? getWindowDimension( $container, "Height" ) : $container.innerHeight() - containerScrollbarWidths.horizontal;
+        if ( cache && cache.netContainerHeight !== undefined ) {
+            height = cache.netContainerHeight;
+        } else {
+            height = isWindow ?
+                     getWindowDimension( $container, "Height" ) :
+                     $container.innerHeight() - getContainerScrollbarWidths( $container, cache ).horizontal;
+
+            if ( cache ) cache.netContainerHeight = height;
+        }
+
+        return height;
+    }
+
+    /**
+     * Gets the effective scroll bar widths of a given container. Makes use of caching if a cache object is provided.
+     *
+     * @param   {jQuery} $container
+     * @param   {Object} [cache]
+     * @returns {Object}
+     */
+    function getContainerScrollbarWidths ( $container, cache ) {
+        var containerScrollbarWidths;
+
+        if ( cache && cache.containerScrollbarWidths ) {
+            containerScrollbarWidths = cache.containerScrollbarWidths;
+        } else {
+            containerScrollbarWidths = effectiveScrollbarWith( $container );
+            if ( cache ) cache.containerScrollbarWidths = containerScrollbarWidths;
+        }
+
+        return containerScrollbarWidths;
     }
 
     /**
