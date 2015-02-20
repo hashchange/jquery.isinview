@@ -9,6 +9,7 @@
   "main": "dist/jquery.isinview.js",
   "keywords": [
     "jquery",
+    "jquery-plugin",
     "view",
     "viewport",
     "window",

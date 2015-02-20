@@ -76,7 +76,7 @@ module.exports = function (grunt) {
         port: KARMA_PORT
       },
       test: {
-        reporters: ['mocha'],
+        reporters: ['progress'],
         singleRun: true
       },
       build: {
@@ -107,16 +107,6 @@ module.exports = function (grunt) {
         }, grunt.file.readJSON('.jshintrc')),
         files: {
           src: 'dist/**/jquery.isinview.js'
-        }
-      }
-    },
-
-    plato: {
-      component: {
-        src: 'dist/jquery.isinview.js',
-        dest: 'reports',
-        options: {
-          jshint: false
         }
       }
     },
@@ -252,7 +242,6 @@ module.exports = function (grunt) {
     }
   });
 
-  grunt.loadNpmTasks('grunt-plato');
   grunt.loadNpmTasks('grunt-preprocess');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-jshint');

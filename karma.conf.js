@@ -28,8 +28,6 @@ module.exports = function(config) {
       'bower_components/jquery/dist/jquery.js',
       'bower_components/jquery.documentsize/dist/jquery.documentsize.js',
 
-      'lib-other/**/*.js',
-
       // Component under test
       'src/jquery.isinview.js',
 
@@ -49,7 +47,7 @@ module.exports = function(config) {
 
     // test results reporter to use
     // possible values: 'dots', 'progress', 'junit', 'growl', 'coverage'
-    reporters: ['mocha'],
+    reporters: ['progress'],
 
 
     // web server port

@@ -12,6 +12,7 @@
   "main": "dist/amd/jquery.isinview.js",
   "keywords": [
     "jquery",
+    "jquery-plugin",
     "view",
     "viewport",
     "window",
@@ -48,7 +49,6 @@
     "grunt-focus": "~0.1.1",
     "grunt-karma": "~0.9.0",
     "grunt-mocha": "~0.4.11",
-    "grunt-plato": "~1.3.0",
     "grunt-preprocess": "~4.0.0",
     "grunt-sails-linker": "~0.9.5",
     "grunt-text-replace": "~0.3.12",
@@ -59,7 +59,6 @@
     "karma-firefox-launcher": "~0.1.3",
     "karma-html2js-preprocessor": "~0.1.0",
     "karma-ie-launcher": "^0.1.5",
-    "karma-jasmine": "~0.2.3",
     "karma-mocha": "~0.1.9",
     "karma-mocha-reporter": "~0.3.1",
     "karma-opera-launcher": "^0.1.0",
