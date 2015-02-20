@@ -112,6 +112,14 @@ $.extend( Setup.prototype, {
         return this._overflowFixture( "visible" );
     },
 
+    overflowHiddenXAutoY: function () {
+        return this._overflowFixture( { overflowX: "hidden", overflowY: "auto" } );
+    },
+
+    overflowAutoXHiddenY: function () {
+        return this._overflowFixture( { overflowX: "auto", overflowY: "hidden" } );
+    },
+
     windowBorderBox: function () {
         var f = this.window();
         f.applyBorderBox();
@@ -132,12 +140,13 @@ $.extend( Setup.prototype, {
 
     // helper methods
     _overflowFixture: function ( overflowType ) {
-        var f = this.fixture;
+        var f = this.fixture,
+            overflow = isString( overflowType ) ? { overflow: overflowType } : overflowType;
 
         this._globalWindowFixture();
         f.$container = f.$stage
             .contentBox( this.containerWidth, this.containerHeight )
-            .css( { overflow: overflowType } );
+            .css( overflow );
 
         return f;
     },

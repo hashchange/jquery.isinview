@@ -215,9 +215,12 @@
             result.vertical = scrollHeight > 0 && ( elemProps.overflowScrollY || elemProps.overflowAutoY && ( innerHeight = $elem.innerHeight() ) < scrollHeight );
 
             // Detect if the appearance of one scroll bar causes the other to appear, too.
-            // todo what if this triggers and overflow is hidden or visible - phantom scroll bar detected? what does scroll height return for these overflow types?
-            result.vertical = result.vertical || result.horizontal && innerHeight - browserScrollbarWidth() < scrollHeight;
-            result.horizontal = result.horizontal || result.vertical && innerWidth - browserScrollbarWidth() < scrollWidth;
+            result.vertical = result.vertical ||
+                              result.horizontal && elemProps.overflowAutoY &&
+                              ( innerHeight !== undefined ? innerHeight : $elem.innerHeight() ) - browserScrollbarWidth() < scrollHeight;
+            result.horizontal = result.horizontal ||
+                                result.vertical && elemProps.overflowAutoX &&
+                                ( innerWidth !== undefined ? innerWidth : $elem.innerWidth() ) - browserScrollbarWidth() < scrollWidth;
 
         }
 

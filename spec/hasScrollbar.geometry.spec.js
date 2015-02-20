@@ -777,18 +777,6 @@
 
                 }
 
-                it( 'when the content is wider and higher than the element, and the element is set to overflow-x: hidden, overflow-y: auto', function () {
-                    // NB When overflow-x or overflow-y has been set to a value !== "visible" in one dimension, the
-                    // other dimension defaults to "auto" and can't be set to "visible" any more.
-                    f.$container
-                        .overflow( "" )
-                        .overflowX( "hidden" )
-                        .overflowY( "auto" );
-
-                    $content.contentBox( containerWidth + 1, containerHeight + 1 );
-                    expect( f.$container.hasScrollbar() ).to.eql( { horizontal: false, vertical: true } );
-                } );
-
             } );
 
             describe( 'It a detects a horizontal scroll bar, and not a vertical one', function () {
@@ -885,19 +873,6 @@
                     } );
 
                 }
-
-                it( 'when the content is wider and higher than the element, and the element is set to overflow-x: auto, overflow-y: hidden', function () {
-                    // NB When overflow-x or overflow-y has been set to a value !== "visible" in one dimension, the
-                    // other dimension defaults to "auto" and can't be set to "visible" any more.
-                    f.$container
-                        .overflow( "" )
-                        .overflowX( "auto" )
-                        .overflowY( "hidden" );
-
-                    $content.contentBox( containerWidth + 1, containerHeight + 1 );
-                    expect( f.$container.hasScrollbar() ).to.eql( { horizontal: true, vertical: false } );
-                } );
-
 
             } );
 
@@ -1155,6 +1130,96 @@
                 it( 'when the element does not have any content', function () {
                     f.$container.empty();
                     expect( f.$container.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
+                } );
+
+            } );
+
+        } );
+
+        describe( 'Element with mixed overflows (overflowX: hidden, overflowY: auto)', function () {
+
+            var containerWidth, containerHeight, $content;
+
+            beforeEach( function () {
+                f = Setup.create( "overflowHiddenXAutoY", f );
+
+                return f.ready.done( function () {
+                    containerWidth = f.$container.width();
+                    containerHeight = f.$container.height();
+                    $content = f.$el;
+                } );
+            } );
+
+            describe( 'It does not detect a scroll bar', function () {
+
+                it( 'when the element does not have any content', function () {
+                    f.$container.empty();
+                    expect( f.$container.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
+                } );
+
+            } );
+
+            describe( 'It detects a vertical scroll bar, and not a horizontal one', function () {
+
+                it( 'when the content of the element extends beyond it in both dimensions', function () {
+                    $content.contentBox( containerWidth + 1, containerHeight + 1 );
+                    expect( f.$container.hasScrollbar() ).to.eql( { horizontal: false, vertical: true } );
+                } );
+
+                it( 'when the content of the element extends beyond it vertically (overflow: auto), and is just as wide as the container horizontally (overflow: hidden)', function () {
+                    // If the overflow were set to "auto" in both dimensions, this would cover the special case where
+                    // the appearance of one scroll bar (vertical) would trigger the appearance of the other (because
+                    // the vertical scroll bar in turn obscures content horizontally).
+                    //
+                    // Here it doesn't happen because of overflowX: hidden. Lets check that the method respects that and
+                    // does not report a phantom scroll bar.
+                    $content.contentBox( containerWidth, containerHeight + 1 );
+                    expect( f.$container.hasScrollbar() ).to.eql( { horizontal: false, vertical: true } );
+                } );
+
+            } );
+
+        } );
+
+        describe( 'Element with mixed overflows (overflowX: auto, overflowY: hidden)', function () {
+
+            var containerWidth, containerHeight, $content;
+
+            beforeEach( function () {
+                f = Setup.create( "overflowAutoXHiddenY", f );
+
+                return f.ready.done( function () {
+                    containerWidth = f.$container.width();
+                    containerHeight = f.$container.height();
+                    $content = f.$el;
+                } );
+            } );
+
+            describe( 'It does not detect a scroll bar', function () {
+
+                it( 'when the element does not have any content', function () {
+                    f.$container.empty();
+                    expect( f.$container.hasScrollbar() ).to.eql( { horizontal: false, vertical: false } );
+                } );
+
+             } );
+
+            describe( 'It detects a horizontal scroll bar, and not a vertical one', function () {
+
+                it( 'when the content of the element extends beyond it in both dimensions', function () {
+                    $content.contentBox( containerWidth + 1, containerHeight + 1 );
+                    expect( f.$container.hasScrollbar() ).to.eql( { horizontal: true, vertical: false } );
+                } );
+
+                it( 'when the content of the element extends beyond it horizontally (overflow: auto), and is just as wide as the container vertically (overflow: hidden)', function () {
+                    // If the overflow were set to "auto" in both dimensions, this would cover the special case where
+                    // the appearance of one scroll bar (horizontal) would trigger the appearance of the other (because
+                    // the horizontal scroll bar in turn obscures content vertically).
+                    //
+                    // Here it doesn't happen because of overflowY: hidden. Lets check that the method respects that and
+                    // does not report a phantom scroll bar.
+                    $content.contentBox( containerWidth + 1, containerHeight );
+                    expect( f.$container.hasScrollbar() ).to.eql( { horizontal: true, vertical: false } );
                 } );
 
             } );
