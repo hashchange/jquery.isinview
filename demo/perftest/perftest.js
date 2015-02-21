@@ -310,6 +310,27 @@
         };
     };
 
+    tests.jqIsInViewLoop = function ( spec ) {
+        var visibleElements,
+            totalElements = spec.$elems.length;
+
+        if ( spec.$container ) {
+            visibleElements = spec.$elems.filter( function () {
+                return $( this ).isInView( spec.$container );
+            } ).length;
+        } else {
+            visibleElements = spec.$elems.filter( function () {
+                return $( this ).isInViewport();
+            } ).length;
+        }
+
+        return {
+            totalElements: totalElements,
+            visibleElements: visibleElements,
+            skipped: false
+        };
+    };
+
     tests.isInViewport = function ( spec ) {
         var visibleElements,
             totalElements = spec.$elems.length;

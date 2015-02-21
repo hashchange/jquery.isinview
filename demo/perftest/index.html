@@ -36,9 +36,10 @@
                         - component class names in the cells of the #results table
                         - method names on the `tests` object in perftest.js
                     -->
-                    <div><input type="checkbox" id="jQueryIsInViewTest" name="jQueryIsInView" value="jqIsInView" checked><label for="jQueryIsInViewTest">jQuery.isInView (method)</label></div>
-                    <div><input type="checkbox" id="jQueryIsInViewContentBoxTest" name="jQueryIsInViewContentBox" value="jqIsInViewContentBox" checked><label for="jQueryIsInViewContentBoxTest">jQuery.isInView (method, content box)</label></div>
-                    <div><input type="checkbox" id="jQueryIsInViewSelectorTest" name="jQueryIsInViewSelector" value="jqIsInViewSelector" checked><label for="jQueryIsInViewSelectorTest">jQuery.isInView (selector)</label></div>
+                    <div><input type="checkbox" id="jQueryIsInViewTest" name="jQueryIsInView" value="jqIsInView" checked><label for="jQueryIsInViewTest">$.fn.inView()</label></div>
+                    <div><input type="checkbox" id="jQueryIsInViewContentBoxTest" name="jQueryIsInViewContentBox" value="jqIsInViewContentBox" checked><label for="jQueryIsInViewContentBoxTest">$.fn.inView(), content box</label></div>
+                    <div><input type="checkbox" id="jQueryIsInViewSelectorTest" name="jQueryIsInViewSelector" value="jqIsInViewSelector" checked><label for="jQueryIsInViewSelectorTest">:inViewport selector</label></div>
+                    <div><input type="checkbox" id="jQueryIsInViewLoopTest" name="jQueryIsInViewLoop" value="jqIsInViewLoop" checked><label for="jQueryIsInViewLoopTest">$.fn.isInView() loop</label></div>
                     <div><input type="checkbox" id="isInViewportTest" name="isInViewport" value="isInViewport"><label for="isInViewportTest"><a href="https://github.com/zeusdeux/isInViewport">isInViewport</a> (for comparison)</label></div>
                     <div><input type="checkbox" id="jqueryVisibleTest" name="jqueryVisible" value="jqVisible"><label for="jqueryVisibleTest"><a href="https://github.com/customd/jquery-visible">jquery.visible</a> (for comparison)</label></div>
                 </fieldset>
@@ -91,19 +92,24 @@
                 <tbody>
                 <tr>
                     <!-- Component class names must be the same as the values of the component checkboxes -->
-                    <td>jQuery.isInView (method)</td>
+                    <td>$.fn.inView()</td>
                     <td class="jqIsInView execTime"></td>
                     <td class="jqIsInView elemCount"></td>
                 </tr>
                 <tr>
-                    <td>jQuery.isInView (method, content box)</td>
+                    <td>$.fn.inView(), content box</td>
                     <td class="jqIsInViewContentBox execTime"></td>
                     <td class="jqIsInViewContentBox elemCount"></td>
                 </tr>
                 <tr>
-                    <td>jQuery.isInView (selector)</td>
+                    <td>:inViewport selector</td>
                     <td class="jqIsInViewSelector execTime"></td>
                     <td class="jqIsInViewSelector elemCount"></td>
+                </tr>
+                <tr>
+                    <td>$.fn.isInView() loop</td>
+                    <td class="jqIsInViewLoop execTime"></td>
+                    <td class="jqIsInViewLoop elemCount"></td>
                 </tr>
                 <tr>
                     <td><a href="https://github.com/zeusdeux/isInViewport">isInViewport</a></td>
