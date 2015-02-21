@@ -817,9 +817,12 @@
      * @returns {jQuery}
      */
     function wrapContainer ( container ) {
-        var $container;
+        var $container,
+            isJquery = container instanceof $;
 
-        $container = container instanceof $ ? container : container === root ? $root : $( container );
+        if ( ! isJquery && ! $.isWindow( container ) && ! container.nodeType && ! isString( container ) ) throw new Error( 'Invalid container: not a window, node, jQuery object or selector string' );
+
+        $container = isJquery ? container : container === root ? $root : $( container );
 
         if ( !$container.length ) throw new Error( 'Invalid container: empty jQuery object' );
 
