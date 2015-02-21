@@ -1,4 +1,4 @@
-// jQuery.isInView, v1.0.0
+// jQuery.isInView, v1.0.1
 // Copyright (c)2015 Michael Heim, Zeilenwechsel.de
 // Distributed under MIT license
 // http://github.com/hashchange/jquery.isinview
@@ -843,9 +843,12 @@
          * @returns {jQuery}
          */
         function wrapContainer ( container ) {
-            var $container;
+            var $container,
+                isJquery = container instanceof $;
     
-            $container = container instanceof $ ? container : container === root ? $root : $( container );
+            if ( ! isJquery && ! $.isWindow( container ) && ! container.nodeType && ! isString( container ) ) throw new Error( 'Invalid container: not a window, node, jQuery object or selector string' );
+    
+            $container = isJquery ? container : container === root ? $root : $( container );
     
             if ( !$container.length ) throw new Error( 'Invalid container: empty jQuery object' );
     
