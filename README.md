@@ -293,23 +293,23 @@ Finally, the plugin doesn't deal with multiple, nested scrolls yet. But it merel
 
 A few best practices speed up jQuery.isInView calls, and do so by a huge amount. In hot code paths like scroll handlers, they have the potential to make or break your application as a whole. So here goes.
 
-- If you act on multiple elements, always use [a filter][filters], and never – never! – [a boolean query][boolean-queries] in a loop. In other words, don't do this: 
+- If you act on multiple elements, use [a filter][filters], not [a boolean query][boolean-queries] in a loop. In other words, don't do this: 
   
   ```javascript
   $content.each( function () {
-      if ( $( this ).isInViewport() ) { /* ... do stuff */ }    // WRONG!
+      if ( $( this ).isInView( $container ) ) { /* ... do stuff */ }    // WRONG!
   } );
   ```
   
   Instead, use the corresponding filter:
   
   ```javascript
-  $content.inViewport().each( function () {
+  $content.inView( $container ).each( function () {
       // ... do stuff
   } );
   ```
   
-  The speed difference is _huge_. Always prefer filters, and you won't go wrong.
+  The speed difference can be _huge_. Perhaps you can still get away with using a boolean query in a loop if your container is the `window`. It is five times slower than a filter then, but even that is still blazing fast. If your container is an ordinary HTML element, however, the boolean query slows down the process by a factor of up to 50 (!). In a nutshell: Prefer filters, and you won't go wrong.
   
 - The [option `box: "content-box"`][api-options.box] is an expensive choice, _much_ slower than working with the `"border-box"` (which is the default). When performance matters, use it only if you really have to.
 
