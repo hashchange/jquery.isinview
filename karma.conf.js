@@ -19,7 +19,7 @@ module.exports = function(config) {
     // sinon-chai, chai-as-promised, chai-jquery. Enable as needed.
     //
     // NB sinon-chai includes Sinon; chai-jquery does _not_ include jQuery
-    frameworks: ['mocha', 'chai', 'sinon-chai'],
+    frameworks: ['mocha', 'chai'],
 
 
     // list of files / patterns to load in the browser
