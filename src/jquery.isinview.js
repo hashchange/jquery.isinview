@@ -150,7 +150,8 @@
         // Transformations:
         // - If called on a window, we need window, document, documentElement and body, and discard the element
         // - If called on the document or document element, we treat it like a call on window (above)
-        // - If called on the body, we need document, documentElement and the body itself (again, we discard the element to avoid ambiguity)
+        // - If called on the body, we need document, documentElement and the body itself (again, we discard the element
+        //   to avoid ambiguity)
         // - If called on an iframe element, we treat it like a window call, using the iframe content window
         query.target.isWindow = $.isWindow( elem );
         if ( query.target.isWindow ) {
@@ -203,7 +204,7 @@
 
             // Scroll bars on an ordinary HTML element
             //
-            // If we deal with an ordinary element, we always need the overflow settings for both axes, because they
+            // If we deal with an ordinary element, we always need the overflow settings for both axes because the axes
             // interact (one scroll bar can cause another).
             elemProps = getCss( elem, ["overflow", "overflowX", "overflowY"], { toLowerCase: true } );
             elemProps = getAppliedOverflows( elemProps, true );
@@ -646,9 +647,11 @@
     }
 
     /**
-     * Returns the applied overflow for the viewport (documentElement) and body in an aggregated `{ window: ..., body: ...}` hash. Helper for hasScrollbar().
+     * Returns the applied overflow for the viewport (documentElement) and body in an aggregated `{ window: ...,
+     * body: ...}` hash. Helper for hasScrollbar().
      *
-     * If we deal with window or body scroll bars, we always need the settings for both body and window (documentElement) because they are interdependent. See getAppliedViewportOverflows().
+     * If we deal with window or body scroll bars, we always need the settings for both body and window (documentElement)
+     * because they are interdependent. See getAppliedViewportOverflows().
      *
      * @param {Object} query
      * @param {Object} context
@@ -767,7 +770,7 @@
             body = getAppliedOverflows( bodyProps, false ),
             consolidated = { window: {}, body: {} };
 
-        // Handle the interdependent relation between body and window (documentElement) overflow
+        // Handle the interdependent relationship between body and window (documentElement) overflow
         if ( _window.overflowX === "visible" ) {
             // If the window overflow is set to "visible", body props get transferred to the window, body changes to
             // "visible". (Nothing really changes if both are set to "visible".)
@@ -977,9 +980,9 @@
      */
     function getWindowDimension ( $window, dimension ) {
         var doc = $window[0].document,
-            method = "client" + dimension;
+            property = "client" + dimension;
 
-        return doc.compatMode === "BackCompat" ? doc.body[method] : doc.documentElement[method];
+        return doc.compatMode === "BackCompat" ? doc.body[property] : doc.documentElement[property];
     }
 
     /**
@@ -991,10 +994,11 @@
      * ATTN
      * ====
      *
-     * We are using an internal jQuery API here: $.css(). The current signature was introduced in jQuery 1.9.0. May
+     * We are using an internal jQuery API here: $.css(). The current signature was introduced in jQuery 1.9.0. It may
      * break without warning with any change of the minor version.
      *
-     * The $.css API is monitored by the tests in api.jquery.css.spec.js and verifies that it works as expected.
+     * For that reason, the $.css API is monitored by the tests in api.jquery.css.spec.js which verify that it works as
+     * expected.
      *
      * @param {HTMLElement}     elem
      * @param {string|string[]} properties
@@ -1026,7 +1030,7 @@
     }
 
     /**
-     * Returns the bounding client rect, including width and height properties. For compatibility with IE8, which
+     * Returns the bounding client rect, including width and height properties. Ensures compatibility with IE8, which
      * supports getBoundingClientRect but doesn't calculate width and height.
      *
      * Use only when width and height are actually needed.
