@@ -372,6 +372,73 @@ In case anything about the test and build process needs to be changed, have a lo
 
 New test files in the `spec` directory are picked up automatically, no need to edit the configuration for that.
 
+## Release Notes
+
+### v1.0.1
+
+- Added friendly error message for invalid container param
+- Removed redundant project boilerplate
+- Improved demo, documentation
+
+### v1.0.0
+
+- Improved caching, especially of container properties
+- Improved handling of mixed overflows in $.fn.hasScrollbar()
+- Fixed tests for PhantomJS, SlimerJS, IE10
+- Added missing copyright notice to Leche test helper
+
+### v0.5.1
+
+- Fixed wrong treatment of container border
+- Fixed readme typos
+
+### v0.5.0
+
+- Removed code for document size detection, using jQuery.documentSize instead
+- Fixed swapped axes for body query in $.fn.hasScrollbar()
+- Refactored $.fn.hasScrollbar
+- Fixed $ parameter in IIFE
+
+### v0.4.1
+
+- Made the browser scrollbar width detection run immediately on DOM ready
+- Simplified browser scrollbar width detection
+- Fixed $(window).hasScrollbar() for IE9
+- Fixed tests for IE9
+
+### v0.4.0
+
+- Fixed plugin code for IE8
+- Fixed $(window).hasScrollbar() with body overflow: auto, hidden for FF and IE
+- Excluded complex hasScrollbar() edge case, when called on body, from handling in some browsers (documented in readme)
+- Handled iOS anomaly which ignores overflow-y: hidden for the viewport
+- Improved handling of overflow edge cases for viewport and body
+- Improved test code, fixed for iOS
+- Added an AMD demo
+- Fleshed out the readme
+
+### v0.3.0
+
+- Fixed plugin and tests for IE
+- Fixed test code for FF
+- Added IE, Safari, Opera launchers to test environment
+- Fixed various minor bugs
+
+### v0.2.0
+
+- Added box option
+- Added $.fn.hasScrollbar, $.fn.scrollbarWidth
+- Reorganized plugin, made all tests pass
+- Completed core tests, increased test coverage
+
+### v0.1.1
+
+- Fixed custom inViewport selector, switched to current Sizzle API
+
+### v0.1.0
+
+- Initial development, tests, documentation
+
 ## License
 
 MIT.
