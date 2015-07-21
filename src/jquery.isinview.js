@@ -1,8 +1,7 @@
 ;( function( $ ) {
     "use strict";
 
-    var _scrollbarWidth,
-        _useGetComputedStyle = !! window.getComputedStyle,          // IE8, my dear, this is for you
+    var _useGetComputedStyle = !! window.getComputedStyle,          // IE8, my dear, this is for you
         _isIOS,
         root = window,
         $root = $( window );
@@ -27,11 +26,6 @@
     $.fn.scrollbarWidth = function ( axis ) {
         return effectiveScrollbarWith( this, axis );
     };
-
-    /**
-     * @returns {number}
-     */
-    $.scrollbarWidth = browserScrollbarWidth;
 
     /**
      * @returns {Window|undefined}
@@ -218,40 +212,14 @@
             // Detect if the appearance of one scroll bar causes the other to appear, too.
             result.vertical = result.vertical ||
                               result.horizontal && elemProps.overflowAutoY &&
-                              ( innerHeight !== undefined ? innerHeight : $elem.innerHeight() ) - browserScrollbarWidth() < scrollHeight;
+                              ( innerHeight !== undefined ? innerHeight : $elem.innerHeight() ) - $.scrollbarWidth() < scrollHeight;
             result.horizontal = result.horizontal ||
                                 result.vertical && elemProps.overflowAutoX &&
-                                ( innerWidth !== undefined ? innerWidth : $elem.innerWidth() ) - browserScrollbarWidth() < scrollWidth;
+                                ( innerWidth !== undefined ? innerWidth : $elem.innerWidth() ) - $.scrollbarWidth() < scrollWidth;
 
         }
 
         return query.getBoth ? result : query.getHorizontal ? result.horizontal : result.vertical;
-    }
-
-    /**
-     * Does the actual work of $.scrollbarWidth. Protected from external modification. See $.scrollbarWidth for details.
-     *
-     * Adapted from Ben Alman's scrollbarWidth plugin. See
-     * - http://benalman.com/projects/jquery-misc-plugins/#scrollbarwidth
-     * - http://jsbin.com/zeliy/1
-     *
-     * @returns {number}
-     */
-    function browserScrollbarWidth () {
-        var testEl;
-
-        if ( _scrollbarWidth === undefined ) {
-
-            testEl = document.createElement( "div" );
-            testEl.style.cssText = "width: 100px; height: 100px; overflow: scroll; position: absolute; top: -500px; left: -500px; margin: 0px; padding: 0px; border: none;";
-
-            document.body.appendChild( testEl );
-            _scrollbarWidth = testEl.offsetWidth - testEl.clientWidth;
-            document.body.removeChild( testEl );
-
-        }
-
-        return _scrollbarWidth;
     }
 
     /**
@@ -265,7 +233,7 @@
     function effectiveScrollbarWith ( $elem, axis ) {
 
         var queryHorizontal, queryVertical, queryBoth, elemHasScrollbar, horizontal, vertical,
-            globalWidth = browserScrollbarWidth();
+            globalWidth = $.scrollbarWidth();
 
         axis || ( axis = "both" );
 
@@ -581,7 +549,7 @@
     function _windowHasScrollbar ( query, context ) {
 
         var windowInnerHeight, windowInnerWidth, windowProps,
-            scrollbarWidth = browserScrollbarWidth(),
+            scrollbarWidth = $.scrollbarWidth(),
             result = {},
             doneX = ! query.getHorizontal,
             doneY = ! query.getVertical;
@@ -1106,13 +1074,6 @@
         // Done as in the Lodash compatibility build
         return typeof value === 'string' || value && typeof value === 'object' && Object.prototype.toString.call(value) === '[object String]' || false;
     }
-
-    // Let's prime $.scrollbarWidth() immediately after the DOM is ready. It just needs to be called once. That will run
-    // the test and cache the result. It is best to do it up front because
-    //
-    // - the test touches the DOM, so let's get it over with before people set up handlers for mutation events,
-    // - $.scrollbarWidth() is called in most code paths, so the result will indeed be needed.
-    $( browserScrollbarWidth );
 
     /**
      * Custom types.

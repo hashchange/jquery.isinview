@@ -12,7 +12,7 @@ The methods of the plugin are optimized for performance and ridiculously fast: f
 
 **Useful helpers**
 
-jQuery.isInView exposes a number of [useful helper functions][api-helpers] which are valuable in their own right. One is [`$elem.hasScrollbar()`][api-fn.hasScrollbar]. You also get [`$elem.scrollbarWidth()`][api-fn.scrollbarWidth], telling you about the space taken up by scroll bars inside a given element. The global [`$.scrollbarWidth()`][api-scrollbarWidth] returns a browser-specific constant. Finally, there is [`$elem.ownerWindow()`][api-fn.ownerWindow], which is helpful for operations in iframes and child windows.
+jQuery.isInView exposes a number of [useful helper functions][api-helpers] which are valuable in their own right. One is [`$elem.hasScrollbar()`][api-fn.hasScrollbar]. You also get [`$elem.scrollbarWidth()`][api-fn.scrollbarWidth], telling you about the space taken up by scroll bars inside a given element. Finally, there is [`$elem.ownerWindow()`][api-fn.ownerWindow], which is helpful for operations in iframes and child windows.
 
 (If you think the API is a bit too prolific for your taste, feel free to overwrite any part of it with your own jQuery extensions. Each plugin method is independent of the others, at least with regard to the public API.)
 
@@ -217,7 +217,7 @@ Returns the effective size (width) of a scrollbar on the element, in pixels, as 
 
 The return type depends on whether one or both axes are queried. For a single axis, the method returns a number. For both axes, it returns an object with the size of each individual scroll bar, e.g. `{ vertical: 17, horizontal: 0 }`.
 
-For a given axis, the method returns the value of [`$.scrollbarWidth()`][api-scrollbarWidth], a browser constant, if there is a scroll bar, and 0 if there isn't. It does not handle custom scroll bars, and expects the default scroll bars of the browser to appear.
+For a given axis, the method returns the value of [`$.scrollbarWidth()`][jQuery.documentSize-scrollbarWidth], a browser constant, if there is a scroll bar, and 0 if there isn't. It does not handle custom scroll bars, and expects the default scroll bars of the browser to appear.
 
 Only acts on the first element of a jQuery collection. Returns undefined if the collection is empty.
 
@@ -227,16 +227,6 @@ Please be aware that the method does not allow you to infer the presence of a sc
 - It returns 0 if there is no scroll bar, but also if there _is_ a scroll bar of width 0, which is the standard behaviour of Safari on the Mac and on iOS.
 
 For the type of elements the method can be called on, and how they are handled, see [`.hasScrollbar()`, above][api-fn.hasScrollbar].
-
-##### jQuery.scrollbarWidth()
-
-_Returns: number_
-
-Returns the size (width) of the scrollbar for a given browser, in pixels, as a number without unit.
-
-Unlike the preceding [`.scrollbarWidth` method][api-fn.scrollbarWidth], this one here is _not_ called on a jQuery collection. Invoke it as `$.scrollbarWidth()`. It returns a browser constant.
-
-If the browser doesn't provide permanent scrollbars, and instead shows them as a temporary overlay while scrolling the page, scrollbar size is reported as 0. That is the default behaviour in mobile browsers, and in current versions of OS X.
 
 #### Other
 
@@ -285,7 +275,7 @@ There are also a few limitations with regard to HTML elements and their styles:
 
 - The `<object>` tag is not supported as a container.
 
-In terms of weird edge cases, there is one for [`.hasScrollbar()`][api-fn.hasScrollbar]. If a browser displays scroll bars [of width 0][api-scrollbarWidth] – like those on iOS and Android – and the overflow setting of the documentElement is not "visible", and the overflow of the body is set to "auto", and you take the unusual step of querying the scroll bars [of the body itself][api-fn.hasScrollbar] (as opposed to the window), `.hasScrollbar()` fails to detect them. (You still there?) Just so you know that this won't (and can't) be fixed. 
+In terms of weird edge cases, there is one for [`.hasScrollbar()`][api-fn.hasScrollbar]. If a browser displays scroll bars [of width 0][jQuery.documentSize-scrollbarWidth] – like those on iOS and Android – and the overflow setting of the documentElement is not "visible", and the overflow of the body is set to "auto", and you take the unusual step of querying the scroll bars [of the body itself][api-fn.hasScrollbar] (as opposed to the window), `.hasScrollbar()` fails to detect them. (You still there?) Just so you know that this won't (and can't) be fixed. 
 
 Finally, the plugin doesn't deal with multiple, nested scrolls yet. But it merely isn't aggregating the results for you. You can call it on each individual container and simply chain the results (with `&&` for boolean tests, or filter chaining).
 
@@ -373,6 +363,11 @@ In case anything about the test and build process needs to be changed, have a lo
 New test files in the `spec` directory are picked up automatically, no need to edit the configuration for that.
 
 ## Release Notes
+
+### v1.0.2
+
+- Removed $.scrollbarWidth() (now provided by jQuery.documentSize)
+- Updated the jQuery.documentSize dependency
 
 ### v1.0.1
 
@@ -478,7 +473,6 @@ Code in the data provider test helper: (c) 2014 Box, Inc., Apache 2.0 license. [
 [api-helpers]: #helpers "API: Helpers"
 [api-fn.hasScrollbar]: #hasscrollbar-axis- "API: .hasScrollbar()"
 [api-fn.scrollbarWidth]: #scrollbarwidth-axis- "API: .scrollbarWidth()"
-[api-scrollbarWidth]: #jqueryscrollbarwidth "API: jQuery.scrollbarWidth()"
 [api-fn.ownerWindow]: #ownerwindow "API: .ownerWindow()"
 
 [tests]: #running-tests-creating-a-new-build "Running tests, creating a new build"
@@ -491,6 +485,7 @@ Code in the data provider test helper: (c) 2014 Box, Inc., Apache 2.0 license. [
 [throttled-scroll]: http://ejohn.org/blog/learning-from-twitter/ "John Resig: Learning from Twitter"
 [Underscore.throttle]: http://underscorejs.org/#throttle "Underscore.js: _.throttle()"
 [css-clipping-masking]: http://css-tricks.com/clipping-masking-css/ "CSS-Tricks: Clipping and Masking in CSS"
+[jQuery.documentSize-scrollbarWidth]: https://github.com/hashchange/jquery.documentsize#scroll-bar-size "jQuery.documentSize: $.scrollbarWidth()"
 
 [data-provider.js]: https://github.com/hashchange/jquery.isinview/blob/master/spec/helpers/data-provider.js "Source code of data-provider.js"
 

@@ -52,7 +52,7 @@ function forceScrollbar ( elem, direction ) {
  * @returns {{global: {}, fn: {}}}          the removed methods, stored in the .global and .fn properties
  */
 function deletePluginApiExcept ( exceptionName, isJQueryGlobal ) {
-    var globalApi = [ "scrollbarWidth" ],
+    var globalApi = [],
         fnApi = [ "hasScrollbar", "scrollbarWidth", "ownerWindow", "inView", "inViewport", "isInView", "isInViewport" ],
         removed = { global: {}, fn:{} };
 
