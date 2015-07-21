@@ -1,4 +1,4 @@
-// jQuery.isInView, v1.0.1
+// jQuery.isInView, v1.0.2
 // Copyright (c)2015 Michael Heim, Zeilenwechsel.de
 // Distributed under MIT license
 // http://github.com/hashchange/jquery.isinview
@@ -27,8 +27,7 @@
     ;( function( $ ) {
         "use strict";
     
-        var _scrollbarWidth,
-            _useGetComputedStyle = !! window.getComputedStyle,          // IE8, my dear, this is for you
+        var _useGetComputedStyle = !! window.getComputedStyle,          // IE8, my dear, this is for you
             _isIOS,
             root = window,
             $root = $( window );
@@ -53,11 +52,6 @@
         $.fn.scrollbarWidth = function ( axis ) {
             return effectiveScrollbarWith( this, axis );
         };
-    
-        /**
-         * @returns {number}
-         */
-        $.scrollbarWidth = browserScrollbarWidth;
     
         /**
          * @returns {Window|undefined}
@@ -176,7 +170,8 @@
             // Transformations:
             // - If called on a window, we need window, document, documentElement and body, and discard the element
             // - If called on the document or document element, we treat it like a call on window (above)
-            // - If called on the body, we need document, documentElement and the body itself (again, we discard the element to avoid ambiguity)
+            // - If called on the body, we need document, documentElement and the body itself (again, we discard the element
+            //   to avoid ambiguity)
             // - If called on an iframe element, we treat it like a window call, using the iframe content window
             query.target.isWindow = $.isWindow( elem );
             if ( query.target.isWindow ) {
@@ -229,7 +224,7 @@
     
                 // Scroll bars on an ordinary HTML element
                 //
-                // If we deal with an ordinary element, we always need the overflow settings for both axes, because they
+                // If we deal with an ordinary element, we always need the overflow settings for both axes because the axes
                 // interact (one scroll bar can cause another).
                 elemProps = getCss( elem, ["overflow", "overflowX", "overflowY"], { toLowerCase: true } );
                 elemProps = getAppliedOverflows( elemProps, true );
@@ -243,40 +238,14 @@
                 // Detect if the appearance of one scroll bar causes the other to appear, too.
                 result.vertical = result.vertical ||
                                   result.horizontal && elemProps.overflowAutoY &&
-                                  ( innerHeight !== undefined ? innerHeight : $elem.innerHeight() ) - browserScrollbarWidth() < scrollHeight;
+                                  ( innerHeight !== undefined ? innerHeight : $elem.innerHeight() ) - $.scrollbarWidth() < scrollHeight;
                 result.horizontal = result.horizontal ||
                                     result.vertical && elemProps.overflowAutoX &&
-                                    ( innerWidth !== undefined ? innerWidth : $elem.innerWidth() ) - browserScrollbarWidth() < scrollWidth;
+                                    ( innerWidth !== undefined ? innerWidth : $elem.innerWidth() ) - $.scrollbarWidth() < scrollWidth;
     
             }
     
             return query.getBoth ? result : query.getHorizontal ? result.horizontal : result.vertical;
-        }
-    
-        /**
-         * Does the actual work of $.scrollbarWidth. Protected from external modification. See $.scrollbarWidth for details.
-         *
-         * Adapted from Ben Alman's scrollbarWidth plugin. See
-         * - http://benalman.com/projects/jquery-misc-plugins/#scrollbarwidth
-         * - http://jsbin.com/zeliy/1
-         *
-         * @returns {number}
-         */
-        function browserScrollbarWidth () {
-            var testEl;
-    
-            if ( _scrollbarWidth === undefined ) {
-    
-                testEl = document.createElement( "div" );
-                testEl.style.cssText = "width: 100px; height: 100px; overflow: scroll; position: absolute; top: -500px; left: -500px; margin: 0px; padding: 0px; border: none;";
-    
-                document.body.appendChild( testEl );
-                _scrollbarWidth = testEl.offsetWidth - testEl.clientWidth;
-                document.body.removeChild( testEl );
-    
-            }
-    
-            return _scrollbarWidth;
         }
     
         /**
@@ -290,7 +259,7 @@
         function effectiveScrollbarWith ( $elem, axis ) {
     
             var queryHorizontal, queryVertical, queryBoth, elemHasScrollbar, horizontal, vertical,
-                globalWidth = browserScrollbarWidth();
+                globalWidth = $.scrollbarWidth();
     
             axis || ( axis = "both" );
     
@@ -606,7 +575,7 @@
         function _windowHasScrollbar ( query, context ) {
     
             var windowInnerHeight, windowInnerWidth, windowProps,
-                scrollbarWidth = browserScrollbarWidth(),
+                scrollbarWidth = $.scrollbarWidth(),
                 result = {},
                 doneX = ! query.getHorizontal,
                 doneY = ! query.getVertical;
@@ -672,9 +641,11 @@
         }
     
         /**
-         * Returns the applied overflow for the viewport (documentElement) and body in an aggregated `{ window: ..., body: ...}` hash. Helper for hasScrollbar().
+         * Returns the applied overflow for the viewport (documentElement) and body in an aggregated `{ window: ...,
+         * body: ...}` hash. Helper for hasScrollbar().
          *
-         * If we deal with window or body scroll bars, we always need the settings for both body and window (documentElement) because they are interdependent. See getAppliedViewportOverflows().
+         * If we deal with window or body scroll bars, we always need the settings for both body and window (documentElement)
+         * because they are interdependent. See getAppliedViewportOverflows().
          *
          * @param {Object} query
          * @param {Object} context
@@ -793,7 +764,7 @@
                 body = getAppliedOverflows( bodyProps, false ),
                 consolidated = { window: {}, body: {} };
     
-            // Handle the interdependent relation between body and window (documentElement) overflow
+            // Handle the interdependent relationship between body and window (documentElement) overflow
             if ( _window.overflowX === "visible" ) {
                 // If the window overflow is set to "visible", body props get transferred to the window, body changes to
                 // "visible". (Nothing really changes if both are set to "visible".)
@@ -1003,9 +974,9 @@
          */
         function getWindowDimension ( $window, dimension ) {
             var doc = $window[0].document,
-                method = "client" + dimension;
+                property = "client" + dimension;
     
-            return doc.compatMode === "BackCompat" ? doc.body[method] : doc.documentElement[method];
+            return doc.compatMode === "BackCompat" ? doc.body[property] : doc.documentElement[property];
         }
     
         /**
@@ -1017,10 +988,11 @@
          * ATTN
          * ====
          *
-         * We are using an internal jQuery API here: $.css(). The current signature was introduced in jQuery 1.9.0. May
+         * We are using an internal jQuery API here: $.css(). The current signature was introduced in jQuery 1.9.0. It may
          * break without warning with any change of the minor version.
          *
-         * The $.css API is monitored by the tests in api.jquery.css.spec.js and verifies that it works as expected.
+         * For that reason, the $.css API is monitored by the tests in api.jquery.css.spec.js which verify that it works as
+         * expected.
          *
          * @param {HTMLElement}     elem
          * @param {string|string[]} properties
@@ -1052,7 +1024,7 @@
         }
     
         /**
-         * Returns the bounding client rect, including width and height properties. For compatibility with IE8, which
+         * Returns the bounding client rect, including width and height properties. Ensures compatibility with IE8, which
          * supports getBoundingClientRect but doesn't calculate width and height.
          *
          * Use only when width and height are actually needed.
@@ -1128,13 +1100,6 @@
             // Done as in the Lodash compatibility build
             return typeof value === 'string' || value && typeof value === 'object' && Object.prototype.toString.call(value) === '[object String]' || false;
         }
-    
-        // Let's prime $.scrollbarWidth() immediately after the DOM is ready. It just needs to be called once. That will run
-        // the test and cache the result. It is best to do it up front because
-        //
-        // - the test touches the DOM, so let's get it over with before people set up handlers for mutation events,
-        // - $.scrollbarWidth() is called in most code paths, so the result will indeed be needed.
-        $( browserScrollbarWidth );
     
         /**
          * Custom types.
