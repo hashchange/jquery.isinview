@@ -26,9 +26,10 @@
     "foundation": "~5.3.3",
     "jquery.visible": "~1.1.0",
     "isInViewport": "~2.2.2",
-    "usertiming": "~0.1.5",
+    "usertiming": "~0.1.6",
     "jquery.promises": "~1.0.1",
-    "underscore": "~1.7.0"
+    "underscore": "~1.7.0",
+    "modernizr": "~2.8.3"
   },
   "resolutions": {
     "jquery": "^1"

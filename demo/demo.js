@@ -1,4 +1,4 @@
-( function( Backbone, _ ) {
+( function( $ ) {
     "use strict";
 
-}( Backbone, _ ));
+}( jQuery ));
