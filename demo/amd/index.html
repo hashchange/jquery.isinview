@@ -31,7 +31,12 @@
     <div class="container"></div>
 
     <!-- libraries --><!-- edit and replace with your project libraries as needed -->
-    <script data-main="amd" src="../bower_demo_components/requirejs/require.js"></script>
+    <script src="../bower_demo_components/requirejs/require.js"></script>
+    <script src="require-config.js"></script>
+    <script>
+        // Relative to the baseUrl defined in require-config.js
+        require( ['../demo/amd/amd'] );
+    </script>
 
 </body>
 </html>
