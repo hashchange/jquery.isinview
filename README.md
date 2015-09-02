@@ -275,7 +275,7 @@ There are also a few limitations with regard to HTML elements and their styles:
 
 - The `<object>` tag is not supported as a container.
 
-In terms of weird edge cases, there is one for [`.hasScrollbar()`][api-fn.hasScrollbar]. If a browser displays scroll bars [of width 0][jQuery.documentSize-scrollbarWidth] – like those on iOS and Android – and the overflow setting of the documentElement is not "visible", and the overflow of the body is set to "auto", and you take the unusual step of querying the scroll bars [of the body itself][api-fn.hasScrollbar] (as opposed to the window), `.hasScrollbar()` fails to detect them. (You still there?) Just so you know that this won't (and can't) be fixed. 
+In terms of weird edge cases, there is one for [`.hasScrollbar()`][api-fn.hasScrollbar]. I only mention it for the sake of completeness – you are extremely unlikely to run into it in an actual application. It can only occur in browsers which display scroll bars [of width 0][jQuery.documentSize-scrollbarWidth], like those on iOS and Android. The overflow setting of the documentElement has to be different from the default, `"visible"`. The overflow of the body has to be set to `"auto"`. Then, if you take the unusual step of querying the scroll bars [of the body itself][api-fn.hasScrollbar] (as opposed to the window), `.hasScrollbar()` fails to detect them. That is not a bug, and can't be fixed. It is not possible to detect the presence of scroll bars in these circumstances.
 
 Finally, the plugin doesn't deal with multiple, nested scrolls yet. But it merely isn't aggregating the results for you. You can call it on each individual container and simply chain the results (with `&&` for boolean tests, or filter chaining).
 
