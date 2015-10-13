@@ -268,7 +268,7 @@ function forceReflow ( element ) {
  * @returns {boolean}
  */
 function isIOS () {
-    return /iPad|iPhone|iPod/g.test( navigator.userAgent );
+    return /iPad|iPhone|iPod/gi.test( navigator.userAgent );
 }
 
 /**
