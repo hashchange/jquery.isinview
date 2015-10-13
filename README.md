@@ -248,7 +248,7 @@ jQuery.isInView has been tested with
 
 - 2015 versions of Chrome, Firefox, Safari, and Opera on the Desktop
 - IE9+
-- Safari on iOS 8, Chrome on Android 5
+- Safari on iOS 8, iOS9, Chrome on Android 5
 - PhantomJS, SlimerJS
 
 The plugin is not formally tested in IE8 (due to a limitation of the test suite), and for that reason, IE8 is not supported. That said, it appears to work there, too. Your mileage may vary – if you still have to support IE8, go ahead and use it, but keep your eyes open.

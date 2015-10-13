@@ -265,10 +265,34 @@ function forceReflow ( element ) {
  *
  * Required for some iOS behaviour which can't be feature-detected in any way.
  *
+ * Can use a version requirement (major version only). A range can also be specified, e.g. with an option like
+ * { gte: 8, lt: 11 }.
+ *
+ * @param {Object} [opts]
+ * @param {number} [opts.eq]   the iOS version must be as specified
+ * @param {number} [opts.lt]   the iOS version must be less than the one specified
+ * @param {number} [opts.lte]  the iOS version must be less than or equal to the one specified
+ * @param {number} [opts.gt]   the iOS version must be greater than the one specified
+ * @param {number} [opts.gte]  the iOS version must be greater than or equal to the one specified
+ *
  * @returns {boolean}
  */
-function isIOS () {
-    return /iPad|iPhone|iPod/gi.test( navigator.userAgent );
+function isIOS ( opts ) {
+    var ver,
+        isMatch = /iPad|iPhone|iPod/gi.test( navigator.userAgent );
+
+    if ( isMatch && opts ) {
+
+        ver = getIOSVersion();
+        if ( opts.eq ) isMatch = ver === opts.eq;
+        if ( isMatch && opts.lt ) isMatch = ver < opts.lt;
+        if ( isMatch && opts.lte ) isMatch = ver <= opts.lte;
+        if ( isMatch && opts.gt ) isMatch = ver > opts.gt;
+        if ( isMatch && opts.gte ) isMatch = ver >= opts.gte;
+
+    }
+
+    return isMatch;
 }
 
 /**
@@ -282,6 +306,8 @@ function isIOS () {
  * @param {number} [opts.lte]  the IE version must be less than or equal to the one specified
  * @param {number} [opts.gt]   the IE version must be greater than the one specified
  * @param {number} [opts.gte]  the IE version must be greater than or equal to the one specified
+ *
+ * @returns {boolean}
  */
 function isIE ( opts ) {
     var ver = getIEVersion(),
@@ -309,6 +335,16 @@ function isIE ( opts ) {
 function getIEVersion () {
     var ieMatch = /MSIE (\d+)/.exec( navigator.userAgent ) || /Trident\/.+? rv:(\d+)/.exec( navigator.userAgent );
     return ( ieMatch && ieMatch.length ) ? parseFloat( ieMatch[1] ) : 0;
+}
+
+/**
+ * Detects the iOS version. Returns the major version number, or 0 if the browser is not running on iOS.
+ *
+ * Simple solution, solely based on UA sniffing.
+ */
+function getIOSVersion () {
+    var iOSMatch = /(iPad|iPhone|iPod).* OS (\d+)/gi.exec( navigator.userAgent );
+    return ( iOSMatch && iOSMatch.length > 1 ) ? parseFloat( iOSMatch[2] ) : 0;
 }
 
 function isSlimerJs () {
