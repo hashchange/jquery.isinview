@@ -374,4 +374,23 @@
         };
     };
 
+    tests.jqLazyload = function ( spec ) {
+        var visibleElements = 0,
+            totalElements = spec.$elems.length,
+
+            config = { threshold : 0 };
+
+        if ( spec.$container ) _.extend( config, { container: spec.$container[0] } );
+
+        spec.$elems.each( function () {
+            if ( $.inviewport( this, config ) ) visibleElements++;
+        } );
+
+        return {
+            totalElements: totalElements,
+            visibleElements: visibleElements,
+            skipped: false
+        };
+    };
+
 }( _, jQuery, performance ));

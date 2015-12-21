@@ -26,6 +26,7 @@
     "foundation": "~5.3.3",
     "jquery.visible": "~1.1.0",
     "isInViewport": "~2.2.2",
+    "jquery_lazyload": "jquery.lazyload#~1.9.7",
     "usertiming": "~0.1.6",
     "jquery.promises": "~1.0.1",
     "underscore": "~1.7.0",
