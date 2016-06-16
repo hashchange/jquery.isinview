@@ -353,7 +353,7 @@
             visibleElements = 0,
             skipped = false;
 
-        if (  spec.$container ) {
+        if ( spec.$container ) {
 
             // jquery.visible can't handle containers other than the viewport
             totalElements = visibleElements = "n/a";
@@ -390,6 +390,34 @@
             totalElements: totalElements,
             visibleElements: visibleElements,
             skipped: false
+        };
+    };
+
+    tests.huntJs = function ( spec ) {
+        var totalElements = spec.$elems.length,
+            visibleElements = 0,
+            skipped = false;
+
+        if ( spec.$container ) {
+
+            // hunt can't handle containers other than the viewport
+            totalElements = visibleElements = "n/a";
+            skipped = true;
+
+        } else {
+
+            hunt( spec.$elems.get(), {
+                in: function() {
+                    visibleElements++;
+                }
+            });
+
+        }
+
+        return {
+            totalElements: totalElements,
+            visibleElements: visibleElements,
+            skipped: skipped
         };
     };
 

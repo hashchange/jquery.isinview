@@ -43,13 +43,14 @@
                     <div><input type="checkbox" id="isInViewportTest" name="isInViewport" value="isInViewport"><label for="isInViewportTest"><a href="https://github.com/zeusdeux/isInViewport">isInViewport</a> (for comparison)</label></div>
                     <div><input type="checkbox" id="jqueryVisibleTest" name="jqueryVisible" value="jqVisible"><label for="jqueryVisibleTest"><a href="https://github.com/customd/jquery-visible">jquery.visible</a> (for comparison)</label></div>
                     <div><input type="checkbox" id="jqueryLazyloadTest" name="jqueryLazyoad" value="jqLazyload"><label for="jqueryLazyloadTest"><a href="https://github.com/tuupola/jquery_lazyload">jquery_lazyload</a> (for comparison)</label></div>
+                    <div><input type="checkbox" id="huntJsTest" name="huntJs" value="huntJs"><label for="huntJsTest"><a href="https://github.com/jeremenichelli/hunt">hunt</a> (for comparison)</label></div>
                 </fieldset>
 
                 <fieldset id="repetition" class=" medium-2 large-offset-1 columns">
                     <legend>Repetition</legend>
                     <div>
                         <label for="elemCount">Elements</label>
-                        <input id="elemCount" type="number" min="100" max="10000" step="100" value="500">
+                        <input id="elemCount" type="number" min="100" max="10000" step="100" value="1000">
                     </div>
                     <div>
                         <label for="repeats">Test runs</label>
@@ -127,10 +128,16 @@
                     <td class="jqLazyload execTime"></td>
                     <td class="jqLazyload elemCount"></td>
                 </tr>
+                <tr>
+                    <td><a href="https://github.com/jeremenichelli/hunt">hunt</a><sup>***</sup></td>
+                    <td class="huntJs execTime"></td>
+                    <td class="huntJs elemCount"></td>
+                </tr>
                 </tbody>
             </table>
             <p class="footnote"><sup>*</sup> As detected by the filter. <i>isInViewport</i> includes partially visible elements.</p>
             <p class="footnote"><sup>**</sup> Testing the <code>$.inviewport()</code> method of <i>jquery_lazyload</i>.</p>
+            <p class="footnote"><sup>***</sup> Invoking the <code>in</code> callback of <i>hunt</i>.</p>
         </div>
     </section>
 
@@ -152,6 +159,7 @@
     -->
     <script src="../bower_demo_components/jquery_lazyload/jquery.lazyload.js"></script>
     <script src="../bower_demo_components/isInViewport/lib/isInViewport.js"></script>
+    <script src="../bower_demo_components/huntjs/dist/hunt.js"></script>
 
     <!-- include project source files here... -->
     <script src="../../src/jquery.isinview.js"></script>
