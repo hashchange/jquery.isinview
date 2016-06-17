@@ -2,13 +2,19 @@
 
 <small>[Setup][setup] – [Example: Lazy loading][example] – [API][api] – [Browser support][browsers] – [Limitations][limitations] – [Performance tips][perftips] – [Build and test][build]</small>
 
-This jQuery plugin tells you if elements are in view inside a scrollable container, or inside a container hiding its overflow. It works with respect to the viewport, iframes, or other scrollable elements. 
+This jQuery plugin tells you if elements are in view inside a scrollable container, or inside a container hiding its overflow. It works with respect to the viewport, iframes, or other scrollable elements.
+
+**What sets jQuery.isInView apart?**
+
+A whole lot of other components aim to do the same job as jQuery.isInView. Most are a bit more lightweight, in terms of file size. They are good choices if you need to check just a few elements, and just occasionally, when timing is not critical.
+
+The main advantage of jQuery.isInView over them is speed. The methods of the plugin are optimized for performance and do their job faster, by orders of magnitude, than any other component I have been able to find (see this [live performance test][perftest-jsbin]). To give you an idea, filtering 1000 elements takes no more than 3ms on an elderly desktop running Chrome, and about 9ms on an underpowered mobile device.
+
+As a result, jQuery.isInView is suitable for event handlers which are called frequently – scroll and resize handlers, for instance –, and it can deal with large numbers of elements.
 
 **Core methods**
 
-You can choose between different ways to figure out which elements [are in view][api-core]. The plugin gives you [filters][] like `$elems.inView()`. You get an [`:inViewport` selector][api-selector], too. Or you can use [boolean queries][boolean-queries], such as [`$elem.isInView()`][api-fn.isInView]. 
-
-The methods of the plugin are optimized for performance and ridiculously fast: filtering 1000 elements takes no more than 3ms on an elderly desktop running Chrome, and about 9ms on an underpowered mobile device. As a result, jQuery.isInView is suitable for event handlers which are called frequently – scroll and resize handlers, for instance –, and it can deal with large numbers of elements.
+You can choose between different ways to figure out which elements [are in view][api-core]. The plugin gives you [filters][] like `$elems.inView()`. You get an [`:inViewport` selector][api-selector], too. Or you can use [boolean queries][boolean-queries], such as [`$elem.isInView()`][api-fn.isInView].
 
 **Useful helpers**
 
@@ -19,6 +25,10 @@ jQuery.isInView exposes a number of [useful helper functions][api-helpers] which
 **Tests**
 
 Browsers are a moving target for development, and they are full of quirks, too. In this environment, the plugin needs to prove that it works. It comes along with a massive [test suite][tests], auto-generated from diverse scenarios and a carefully crafted set of base tests. [Performance tests][perftests] are also part of the package.
+
+**Example and Demo**
+
+There is an interactive demo at [JS Bin][demo-jsbin] or [Codepen][demo-codepen] which you can play with. Or explore the [lazy-loading example, below][example].
 
 **Other**
 
@@ -336,7 +346,9 @@ Further, on iOS, you need to guide the tests along. Even with the pop-up blocker
 
 #### Performance tests
 
-You can examine the performance of jQuery.isInView, and compare it to some other popular plugins which have served as a benchmark during development. Spin up a server with `grunt demo` and navigate to the performance test page, `http://[your-host-ip]:9400/demo/perftest/`. 
+You can examine the performance of jQuery.isInView, and compare it to some other popular plugins which have served as a benchmark during development. Spin up a server with `grunt demo` and navigate to the performance test page, `http://[your-host-ip]:9400/demo/perftest/`.
+
+A live version of the test, showing data of a stable, published build, is available on [JS Bin][perftest-jsbin]. 
 
 #### Tool chain and commands
 
@@ -380,6 +392,10 @@ That's why donations are welcome, and be it as nod of appreciation to keep spiri
 [![Donate with Paypal][donations-paypal-button]][donations-paypal-link]
 
 ## Release Notes
+
+### v1.0.4
+
+- Updated the jQuery dependency to jQuery 3
 
 ### v1.0.2
 
@@ -465,7 +481,7 @@ Code in the data provider test helper: (c) 2014 Box, Inc., Apache 2.0 license. [
 [dist-amd-prod]: https://raw.github.com/hashchange/jquery.isinview/master/dist/amd/jquery.isinview.min.js "jquery.isinview.min.js, AMD build"
 
 [setup]: #dependencies-and-setup "Setup"
-[example]: #usage-by-example-lazy-loading "Example:"
+[example]: #usage-by-example-lazy-loading "Usage by example: Lazy loading"
 [api]: #api "API"
 [browsers]: #browser-support "Browser support"
 [limitations]: #limitations "Limitations"
@@ -498,6 +514,10 @@ Code in the data provider test helper: (c) 2014 Box, Inc., Apache 2.0 license. [
 [jQuery]: http://jquery.com/ "jQuery"
 [jQuery.documentSize]: https://github.com/hashchange/jquery.documentsize "jQuery.documentSize"
 [Underscore]: http://underscorejs.org/ "Underscore.js"
+
+[demo-jsbin]: http://jsbin.com/legice/6/edit?js,output "jQuery.isInView demo (AMD) – JSBin"
+[demo-codepen]: http://codepen.io/hashchange/pen/LVKqPK "jQuery.isInView demo (AMD) – Codepen"
+[perftest-jsbin]: http://jsbin.com/lisudi/3 "jQuery.isInView: Performance Test and Comparison (with isInViewport, jquery.visible, jquery_lazyload, hunt) - JS Bin"
 
 [throttled-scroll]: http://ejohn.org/blog/learning-from-twitter/ "John Resig: Learning from Twitter"
 [Underscore.throttle]: http://underscorejs.org/#throttle "Underscore.js: _.throttle()"
