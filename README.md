@@ -260,9 +260,9 @@ If the element is inside an iframe, `.ownerWindow()` returns the window represen
 
 jQuery.isInView has been tested with 
 
-- 2015, 2016 versions of Chrome, Firefox, Safari, and Opera on the desktop
+- 2015, 2016, 2017 versions of Chrome, Firefox, Safari, and Opera on the desktop
 - IE9+, Edge
-- Safari on iOS 8, iOS9; Chrome and Firefox on Android 5
+- Safari on iOS 8-10; Chrome and Firefox on Android 5
 - PhantomJS, SlimerJS
 
 The plugin is not formally tested in IE8 (due to a limitation of the test suite), and for that reason, IE8 is not supported. That said, it appears to work there, too. Your mileage may vary – if you still have to support IE8, go ahead and use it, but keep your eyes open.
@@ -392,6 +392,10 @@ That's why donations are welcome, and be it as nod of appreciation to keep spiri
 [![Donate with Paypal][donations-paypal-button]][donations-paypal-link]
 
 ## Release Notes
+
+### v1.0.5
+
+- Updated the jQuery dependency to jQuery 3.1
 
 ### v1.0.4
 
@@ -531,7 +535,7 @@ Code in the data provider test helper: (c) 2014 Box, Inc., Apache 2.0 license. [
 [npm]: https://npmjs.org/ "npm: Node Packaged Modules"
 [Grunt]: http://gruntjs.com/ "Grunt: The JavaScript Task Runner"
 [Karma]: http://karma-runner.github.io/ "Karma – Spectacular Test Runner for Javascript"
-[Mocha]: http://visionmedia.github.io/mocha/ "Mocha – the fun, simple, flexible JavaScript test framework"
+[Mocha]: http://mochajs.org/ "Mocha – the fun, simple, flexible JavaScript test framework"
 [Chai]: http://chaijs.com/ "Chai: a BDD / TDD assertion library"
 [Sinon]: http://sinonjs.org/ "Sinon.JS – Versatile standalone test spies, stubs and mocks for JavaScript"
 [JSHint]: http://www.jshint.com/ "JSHint, a JavaScript Code Quality Tool"
