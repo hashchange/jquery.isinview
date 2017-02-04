@@ -407,7 +407,7 @@
         } else {
 
             hunt( spec.$elems.get(), {
-                in: function() {
+                enter: function() {
                     visibleElements++;
                 }
             });
