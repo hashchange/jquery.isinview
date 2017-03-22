@@ -23,14 +23,14 @@
   "dependencies": {
     "foundation": "~5.5.3",
     "jquery": "^1",
-    "jquery.promises": "~1.0.2",
+    "jquery.promises": "~1.0.4",
     "modernizr": "^2 || ~3.3.1",
-    "requirejs": "~2.2.0",
+    "requirejs": "~2.3.0",
     "underscore": "~1.8.3",
     "usertiming": "~0.1.8",
 
     "huntjs": "~2.1.2",
-    "isInViewport": "~2.4.2",
+    "isInViewport": "~3.0.0",
     "jquery-visible": "~1.2.0",
     "jquery_lazyload": "jquery.lazyload#~1.9.7"
   },
