@@ -1,4 +1,4 @@
-// jQuery.isInView, v1.0.5
+// jQuery.isInView, v1.0.6
 // Copyright (c) 2014-2017 Michael Heim, Zeilenwechsel.de
 // Distributed under MIT license
 // http://github.com/hashchange/jquery.isinview
@@ -99,24 +99,12 @@
 
     $.expr.match.inviewport = /^(?:inVieport)$/i;
 
-    $.expr.setFilters.inviewport = $.expr.createPseudo( function () {
-        return $.expr.createPseudo( function ( elems, matches ) {
-            var i, config,
-                length =  elems.length;
+    $.expr.setFilters.inviewport = function ( elems, argument, not ) {
+        var $elems = $( elems ),
+            $elemsInView = inView( $elems, ownerWindow( $elems ) );
 
-            if ( length ) {
-
-                config = _prepareConfig( $( elems ) );
-                checkHierarchy( elems[0], config.container );
-
-                for ( i = 0; i < length; i++ ) {
-                    matches[i] = _isInView( elems[i], config ) ? elems[i] : undefined;
-                }
-            }
-
-        } );
-    } );
-
+        return not ? $elems.not( $elemsInView ) : $elemsInView;
+    };
 
     /**
      * Internals

@@ -393,6 +393,10 @@ That's why donations are welcome, and be it as nod of appreciation to keep spiri
 
 ## Release Notes
 
+### v1.0.6
+
+- Fixed `:inViewport` selector when negated (issue #3)
+
 ### v1.0.5
 
 - Updated the jQuery dependency to jQuery 3.1
