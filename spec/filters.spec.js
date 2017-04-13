@@ -96,6 +96,22 @@
                     expect( $container.children().filter( 'div:inViewport' ).get() ).to.eql( $el.get() );
                 } );
 
+                it( 'consists of two elements, the first being in view, the second out of view, .not( ":inViewport" ) returns the second element', function () {
+                    // We test the selector in two notations: on its own (':inViewport'), and appended to another selector
+                    // ('div:inViewport').
+                    $elOut.insertAfter( $el );
+                    expect( $container.children().not( ':inViewport' ).get() ).to.eql( $elOut.get() );
+                    expect( $container.children().not( 'div:inViewport' ).get() ).to.eql( $elOut.get() );
+                } );
+
+                it( 'consists of two elements, the first being in view, the second out of view, .filter( ":not(:inViewport)" ) returns the second element', function () {
+                    // We test the selector in two notations: on its own (':inViewport'), and appended to another selector
+                    // ('div:inViewport').
+                    $elOut.insertAfter( $el );
+                    expect( $container.children().filter( ':not(:inViewport)' ).get() ).to.eql( $elOut.get() );
+                    expect( $container.children().filter( ':not(div:inViewport)' ).get() ).to.eql( $elOut.get() );
+                } );
+
             } );
 
             describe( 'The filter does not rely on the exposed plugin API. When all public methods of the plugin, except the filter, are deleted from jQuery', function () {
