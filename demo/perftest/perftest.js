@@ -243,12 +243,12 @@
 
         spec.ready.done( function () {
             results = run( spec );
-        } );
 
-        spec.hasRun.done( function () {
-            writeResults( results );
-            teardown();
-            highlightResults();
+            spec.hasRun.done( function () {
+                writeResults( results );
+                teardown();
+                highlightResults();
+            } );
         } );
     } );
 
