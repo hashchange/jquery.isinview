@@ -38,7 +38,7 @@
     "reinstall": "npm run cleanup -s && npm run setup || npm run setup"
   },
   "dependencies": {
-    "jquery": ">=1.9.0 <3.2",
+    "jquery": ">=1.9.0",
     "jquery.documentsize": "^1.1.0"
   },
   "devDependencies": {
